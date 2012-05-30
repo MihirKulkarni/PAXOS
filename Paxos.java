@@ -47,7 +47,6 @@ public class Paxos implements Runnable{
 	//Proposer code goes here
 	//Proposer Initiated 
 	//Send Prepare 
-	STATE state=STATE.PROMISE_ACK;
         int cur_Pnum=-1;
 	while(true){
   	  if(c.isDistinguished()){ 
@@ -102,19 +101,71 @@ public class Paxos implements Runnable{
 	}
       }
       // Code for Acceptor Behaviour
-      if(c.index>=network.numProposers && c.index<(network.numProposers+network.numAcceptors)){
+      if(c.index>=network.numProposers && c.index<(network.numProposers+network.numAcceptors)) {
+        // Initialize the highest proposal number received so far
+	// and the value if any proposal has been accepted
+	int max_pnum = -1;
+	int val = -1;
+	boolean hasAccepted = false;
 	//Acceptor code goes here
-	while(true){
-          Message m=new Message(MSG_TYPE.PROMISE,0,0,0,0);
-          String msg=c.receiveMessage();
-	  if(msg!=null){
-	    m.parseMessage(msg);
-	    System.out.println("Acceptor- "+c.index+"received: "+m.createMessage());
+	while(true) {
+  	  Message m1 = new Message(MSG_TYPE.PROMISE, -1, -1, -1, -1);
+	  String msg_st = c.receiveMessage();
+	  Message m2;
+	  if(msg_st != null) {
+	    m1.parseMessage(msg_st);
+	    // Check for error conditions
+	    // switch case to handle all msg_type
+	    switch (m1.msg_type) {
+	      case PREPARE:
+	/*	This is when the message received is PREPARE
+	 *	If the proposal number is greater than highest proposal number this acceptor has seen,
+	 *	it will send a PROMISE message.
+	 *	It will also handle the case when the acceptor has accepted a value but the proposal number
+	 *	is greater, by sending a PROMISE with the Value set to one it has accepted. */
+	        if(m1.Pnum >= max_pnum) {				// change max proposal number promised only when it is greater than current
+		  max_pnum = m1.Pnum;
+  		  m2 = new Message(MSG_TYPE.PROMISE, m1.PID, m1.AID, max_pnum, val);
+		  c.sendMessage(m1.PID, m2.createMessage());
+	        }
+		else {
+		  m2 = new Message(MSG_TYPE.NACK_PROMISE, m1.PID, m1.AID, max_pnum, val);		// sending a NACK_PROMISE when proposal's pnum < max_pnum
+		  c.sendMessage(m1.PID, m2.createMessage());
+		}
+		break;
+	      case ACCEPT:
+		if(m1.Pnum == max_pnum) {
+		  if(hasAccepted) {
+		    if(val != m1.Value) {
+		      Message m4 = new Message(MSG_TYPE.NACK_ACCEPTED, m1.PID, m1.AID, max_pnum, val);
+  		      c.sendMessage(m1.PID, m4.createMessage());
+		      break;
+		    }
+		  }
+		  else
+		    val = m1.Value;
+  		    /* Send the accepted value to learner only when it is accepted for the first time
+		     * hasAccepted boolean takes care of this */
+ 		  if(hasAccepted == false) {
+		    hasAccepted = true;
+		    Message m3 = new Message(MSG_TYPE.LEARN, m1.PID, m1.AID, max_pnum, val);
+		      // send message to all learners
+		  }
+ 		  m2 = new Message(MSG_TYPE.ACCEPTED, m1.PID, m1.AID, max_pnum, val);
+		}
+		else {
+		/* Send a PROMISE message with current max_pnum when received Pnum in ACCEPT message is less than max_pnum
+		 * which was promised by the acceptor.
+		 * If the acceptor has accepted a value, it sends the same or sets val = -1 in the PROMISE message.
+		 * Thereby the proposer comes to know that its ACCEPT was rejected and starts with a new PREPARE. */
+		  m2 = new Message(MSG_TYPE.NACK_ACCEPTED, m1.PID, m1.AID, max_pnum, val);
+		}
+		c.sendMessage(m1.PID, m2.createMessage());
+	      break;
+	    default:
+ 	      break;
+            }
 	  }
-	  else{
-	    System.out.println("NULL message received");
-	  }
-	  Thread.sleep(1000);
 	}
       }
       if(c.index>=(network.numProposers+network.numAcceptors)){
