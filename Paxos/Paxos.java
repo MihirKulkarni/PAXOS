@@ -43,8 +43,10 @@ public class Paxos implements Runnable{
   public void run(){
     try{
       Thread t= Thread.currentThread();
-      Channel c=network.getChannel(Integer.parseInt(t.getName()));
-      if(c.index<network.numProposers){
+      int myindex=Integer.parseInt(t.getName());
+      Channel c=network.getChannel(myindex);
+      Message promise_queue[]=new Message[network.numAcceptors()]; 
+      if(myindex<network.numProposers){
 	//Proposer code goes here
 	//Proposer Initiated 
 	//Send Prepare 
@@ -53,9 +55,9 @@ public class Paxos implements Runnable{
   	  if(c.isDistinguished()){ 
 	  //I am distinguished proposer, if not I shall be idle and querying constantly if I become one.
 	    while(c.receiveMessage()!=null){} //Clear all previous messages and start fresh prepare
-            cur_Pnum=nextProposalNumber(c.index,cur_Pnum);
+            cur_Pnum=nextProposalNumber(myindex,cur_Pnum);
 	    for(int a=network.numProposers();a<(network.numProposers+network.numAcceptors);a++){
- 	      Message m_prepare=new Message(MSG_TYPE.PREPARE,c.index,a,cur_Pnum,-1);
+ 	      Message m_prepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1);
               c.sendMessage(a,m_prepare.createMessage());
 	      System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" with PNum:"+cur_Pnum);
             }
@@ -70,35 +72,51 @@ public class Paxos implements Runnable{
    	        m.parseMessage(msg); //parse the received message to the Message object
                 switch(m.msg_type){
                   case PROMISE: //if the proposer received promise, send a accept only if it contains Pnum=cur_Pnum.
-                    System.out.println("Recvd PROMISE from A-"+m.AID);
+		    Message msg_promQ=promise_queue[m.AID-network.numProposers()];
+		   //if guarantee reached reply back accepted value and cur_Pnum
+                    if(msg_promQ==null){
+			promise_queue[m.AID-network.numProposers()]=m; //new PROMISE recvd
+	                System.out.println("Recvd PROMISE from A-"+m.AID+" and added to empty queue");
+                    }
+ 		    else{
+                      if(m.Value!=-1 && m.Pnum>msg_promQ.Pnum){ 
+                        promise_queue[m.AID-network.numProposers()]=m; //new PROMISE recvd
+	                System.out.println("Recvd PROMISE from A-"+m.AID+" and replaced already known value");
+                      }
+                      if(m.Value==-1 && m.Pnum>msg_promQ.Pnum){
+		    }	
                     int value=-1;
                     if(m.Value==-1)
 		      value=c.getInitialValue();
 		    else
                       value=m.Value;
-		    Message m_accept=new Message(MSG_TYPE.ACCEPT,c.index,m.AID,m.Pnum,value);   //what if hacker changes c.index?        
+		    Message m_accept=new Message(MSG_TYPE.ACCEPT,myindex,m.AID,m.Pnum,value);   
                     if(c.isDistinguished() && m.Pnum==cur_Pnum){                    
                       c.sendMessage(m.AID,m_accept.createMessage());
-                      System.out.println("P-"+c.index+"Sent ACCEPT message to A-"+m.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+value);
+                      System.out.println("P-"+myindex+"Sent ACCEPT message to A-"+m.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+value);
                     }
                     break;
                   case NACK_PROMISE: //proposal rejected coz Accepter has promised higher proposal
-                    int next_Pnum=nextProposalNumber(c.index,m.Pnum);
-		    if(next_Pnum==-1)
-                       System.out.println("Reached MAX_PROPNUM, bail out by throwing exception");
- 		    Message m_newprepare=new Message(MSG_TYPE.PREPARE,c.index,m.AID,next_Pnum,-1);  //what if hacker changes c.index?        
-                    if(c.isDistinguished() && m.Pnum==cur_Pnum)                    
-                      c.sendMessage(m.AID,m_newprepare.createMessage());
-                    break;
-                  case ACCEPTED: //value has been accepted. Keep quiet.
-                    System.out.println("P-"+c.index+"Recvd ACCEPTED from A-"+m.AID+" for PNum:"+m.Pnum+""+cur_Pnum+" and value: "+m.Value);
-              	    break;
-                  case NACK_ACCEPTED: 
-		    System.out.println("P-"+c.index+"Recvd NACK_ACCEPTED from A-"+m.AID+" for PNum: "+m.Pnum+""+cur_Pnum+" and value: "+m.Value+", hence send fresh PREPARE");
-		    cur_Pnum=nextProposalNumber(c.index,m.Pnum);
 		    if(cur_Pnum==-1)
                        System.out.println("Reached MAX_PROPNUM, bail out by throwing exception");
- 		    m_newprepare=new Message(MSG_TYPE.PREPARE,c.index,m.AID,cur_Pnum,m.Value);  //what if hacker changes c.index?        
+ 		    if(c.isDistinguished() && cur_Pnum!=m.Pnum){                    
+                      cur_Pnum=nextProposalNumber(myindex,m.Pnum);
+	              for(int a=network.numProposers();a<(network.numProposers+network.numAcceptors);a++){
+ 	                Message m_newprepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1);
+                        c.sendMessage(a,m_newprepare.createMessage());
+	                System.out.println("DP sending Prepare Message to A-"+m_newprepare.AID +" with PNum:"+cur_Pnum);
+                      }
+                    }
+                    break;
+                  case ACCEPTED: //value has been accepted. Keep quiet.
+                    System.out.println("P-"+myindex+"Recvd ACCEPTED from A-"+m.AID+" for PNum:"+m.Pnum+""+cur_Pnum+" and value: "+m.Value);
+              	    break;
+                  case NACK_ACCEPTED: 
+		    System.out.println("P-"+myindex+"Recvd NACK_ACCEPTED from A-"+m.AID+" for PNum: "+m.Pnum+""+cur_Pnum+" and value: "+m.Value+", hence send fresh PREPARE");
+		    cur_Pnum=nextProposalNumber(myindex,m.Pnum);
+		    if(cur_Pnum==-1)
+                       System.out.println("Reached MAX_PROPNUM, bail out by throwing exception");
+ 		    m_newprepare=new Message(MSG_TYPE.PREPARE,myindex,m.AID,cur_Pnum,m.Value);  //what if hacker changes c.index?        
                     if(c.isDistinguished())                    
                       c.sendMessage(m.AID,m_newprepare.createMessage());
                     break;
@@ -116,7 +134,7 @@ public class Paxos implements Runnable{
 	}
       }
       // Code for Acceptor Behaviour
-      if(c.index>=network.numProposers && c.index<(network.numProposers+network.numAcceptors)) {
+      if(myindex>=network.numProposers && myindex<(network.numProposers+network.numAcceptors)) {
         // Initialize the highest proposal number received so far
 	// and the value if any proposal has been accepted
 	int max_pnum = -1;
@@ -186,9 +204,9 @@ public class Paxos implements Runnable{
 	  }
 	}
       }
-      if(c.index>=(network.numProposers+network.numAcceptors)){
+      if(myindex>=(network.numProposers+network.numAcceptors)){
 	//Learner code goes here
-	System.out.println("I am learner : "+c.index);
+	System.out.println("I am learner : "+myindex);
 	while(true){
           String msg_learn=c.receiveMessage();
           if(msg_learn!=null){

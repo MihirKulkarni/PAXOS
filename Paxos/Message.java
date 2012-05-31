@@ -4,13 +4,16 @@ public class Message{
   int PID;
   int AID;
   int Pnum;
+  int Value_Pnum;
   int Value;
-  public Message(MSG_TYPE mtype,int pid,int aid,int pnum,int val){
+  public Message(MSG_TYPE mtype,int pid,int aid,int pnum,int val_pnum,int val){
     msg_type=mtype;
     PID=pid;
     AID=aid;
     Pnum=pnum;
+    Value_Pnum=val_pnum;
     Value=val;
+
   };
   public void parseMessage(String msg){
     String[] split_msg = msg.split("\\.");
@@ -18,10 +21,11 @@ public class Message{
     this.PID=Integer.parseInt(split_msg[1]);
     this.AID=Integer.parseInt(split_msg[2]);
     this.Pnum=Integer.parseInt(split_msg[3]);
-    this.Value=Integer.parseInt(split_msg[4]);
+    this.Value_Pnum=Integer.parseInt(split_msg[4]); 
+    this.Value=Integer.parseInt(split_msg[5]);
   };
   public String createMessage(){
-    return this.msg_type+"."+this.PID+"."+this.AID+"."+this.Pnum+"."+this.Value;
+    return this.msg_type+"."+this.PID+"."+this.AID+"."+this.Pnum+"."+this.Value_Pnum+"."+this.Value;
   };
 }
 
