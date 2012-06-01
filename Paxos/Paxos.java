@@ -1,6 +1,7 @@
 package Paxos;
 import java.lang.Thread;
 import java.util.Random;
+import java.util.HashMap; 
 
 enum MSG_TYPE {PREPARE, PROMISE, ACCEPT, ACCEPTED,LEARN,NACK_PROMISE,NACK_ACCEPTED};
 
@@ -26,7 +27,7 @@ public class Paxos implements Runnable{
   }
   
   public int nextProposalNumber(int PID,int cur_Pnum){
-System.out.println("$$"+PID+"$$"+cur_Pnum);
+//System.out.println("$$"+PID+"$$"+cur_Pnum);
     int i=0;
     while(true){
       if(DisjointProposalNum[i]<=cur_Pnum)
@@ -65,7 +66,7 @@ System.out.println("$$"+PID+"$$"+cur_Pnum);
 	    for(int a=network.numProposers();a<(network.numProposers+network.numAcceptors);a++){
  	      Message m_prepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,-1);
               c.sendMessage(a,m_prepare.createMessage());
-	      System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" with PNum:"+cur_Pnum);
+//	      System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" with PNum:"+cur_Pnum);
             }
 	    while(true){
               if(!c.isDistinguished())
@@ -82,7 +83,7 @@ System.out.println("$$"+PID+"$$"+cur_Pnum);
                     if(guaranteed_flag==1 && m.Pnum==guaranteed_Pnum){ //We already got a guarantee from majority so just accept what we already agreed
           	      Message m_accept=new Message(MSG_TYPE.ACCEPT,myindex,m.AID,m.Pnum,-1,guaranteed_value);   
                       c.sendMessage(m.AID,m_accept.createMessage());
-                      System.out.println("DP P-"+myindex+" sending ACCEPT msg for past run to A-"+m.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+guaranteed_value);
+//                      System.out.println("DP P-"+myindex+" sending ACCEPT msg for past run to A-"+m.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+guaranteed_value);
                     }
                     if(m.Pnum==cur_Pnum){   //Ignore Promise for past run, we will anyways get PROMISE for current run.
   		      
@@ -107,20 +108,20 @@ System.out.println("$$"+PID+"$$"+cur_Pnum);
                       //Add messages to local queue or discard those messages
                       if(msg_promQ==null){
 			promise_queue[m.AID-network.numProposers()]=m; //new PROMISE recvd
-	                System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
+//	                System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
                       }
                       else{
                         if(m.Value==-1 && msg_promQ.Value==-1 && msg_promQ.Pnum<m.Pnum){
                           promise_queue[m.AID-network.numProposers()]=m; //new latest PROMISE recvd to replace existing unknown value.
-	                  System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
+//	                  System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
                         }
                         if(m.Value!=-1 && msg_promQ.Value!=-1 && msg_promQ.Pnum<m.Pnum){
                           promise_queue[m.AID-network.numProposers()]=m; //new latest PROMISE recvd to replace existing known value.
-	                  System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
+//	                  System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
                         }
                         if(m.Value!=-1 && msg_promQ.Value==-1){
                           promise_queue[m.AID-network.numProposers()]=m; //new latest PROMISE recvd with value to replace existing unknown value.
-	                  System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
+//	                  System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
                         }
                       }
 		      //Done with adding messages to local queue
@@ -152,7 +153,7 @@ System.out.println("$$"+PID+"$$"+cur_Pnum);
 			    if(promise_queue[a-network.numProposers()]!=null){
               	              Message m_accept=new Message(MSG_TYPE.ACCEPT,myindex,a,m.Pnum,-1,guaranteed_value);   
                               c.sendMessage(a,m_accept.createMessage());
-                              System.out.println("P-"+myindex+"Sent ACCEPT message to A-"+m_accept.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+guaranteed_value);
+      //                        System.out.println("P-"+myindex+"Sent ACCEPT message to A-"+m_accept.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+guaranteed_value);
                             }
                           }
                         }
@@ -168,12 +169,12 @@ System.out.println("$$"+PID+"$$"+cur_Pnum);
                         System.out.println("Reached MAX_PROPNUM, bail out by throwing exception");
  	              Message m_newprepare=new Message(MSG_TYPE.PREPARE,myindex,m.AID,cur_Pnum,-1,-1);
                       c.sendMessage(m.AID,m_newprepare.createMessage());
-	              System.out.println("NACK_Promise recvd so DP sending Prepare Message to A-"+m_newprepare.AID +" with PNum:"+cur_Pnum);
+	  //            System.out.println("NACK_Promise recvd so DP sending Prepare Message to A-"+m_newprepare.AID +" with PNum:"+cur_Pnum);
                       promise_queue[m.AID-network.numProposers()]=null;
                     }
                     break;
                   case ACCEPTED: //value has been accepted. Keep quiet.
-                    System.out.println("P-"+myindex+"Recvd ACCEPTED from A-"+m.AID+" for PNum:"+m.Pnum+""+cur_Pnum+" and value: "+m.Value);
+         //           System.out.println("P-"+myindex+"Recvd ACCEPTED from A-"+m.AID+" for PNum:"+m.Pnum+""+cur_Pnum+" and value: "+m.Value);
 		    Acceptor_decisions[m.AID-network.numProposers()]=1;
                     int decision_made=0;
 		    for(int i=0;i<network.numAcceptors();i++){
@@ -198,15 +199,14 @@ System.out.println("$$"+PID+"$$"+cur_Pnum);
                       guaranteed_Pnum=-1;  
 	              guaranteed_flag=0;
 
-                      System.out.println("P-"+myindex+"Recvd NACK_ACCEPTED from from majority for PNum: "+m.Pnum+""+cur_Pnum+" and value: "+m.Value+", hence send fresh PREPARE");
+         //             System.out.println("P-"+myindex+"Recvd NACK_ACCEPTED from from majority for PNum: "+m.Pnum+""+cur_Pnum+" and value: "+m.Value+", hence send fresh PREPARE");
 		      cur_Pnum=nextProposalNumber(myindex,cur_Pnum);
-System.out.println(cur_Pnum+"$$"+myindex);
 		      if(cur_Pnum==-1)
                         System.out.println("Reached MAX_PROPNUM, bail out by throwing exception");
  	              for(int a=network.numProposers();a<(network.numProposers+network.numAcceptors);a++){
  	                Message m_prepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,-1);
                         c.sendMessage(a,m_prepare.createMessage());
-	                System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" after NACK_ACCEPT with PNum:"+cur_Pnum);
+//	                System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" after NACK_ACCEPT with PNum:"+cur_Pnum);
                       }
                     }
                     break;
@@ -290,14 +290,36 @@ System.out.println(cur_Pnum+"$$"+myindex);
       }
       if(myindex>=(network.numProposers+network.numAcceptors)){
 	//Learner code goes here
+        int DECIDED=0; // 1->Decision submitted
 	System.out.println("I am learner : "+myindex);
+        Message learner_queue[]=new Message[network.numAcceptors()]; 
+        HashMap<Integer, Integer> learn_val = new HashMap<Integer, Integer>();
 	while(true){
-          String msg_learn=c.receiveMessage();
-          if(msg_learn!=null){
-  	    Message Msg_Learn=new Message(MSG_TYPE.PREPARE,0,0,0,0,0); //create a dummy Message object
-            Msg_Learn.parseMessage(msg_learn);
-	    c.decide(Msg_Learn.Value);
-            System.out.println("Value Learnt:"+ Msg_Learn.Value);
+          String Msg_Learn=c.receiveMessage();
+          if(Msg_Learn!=null && DECIDED==0){
+  	    Message msg_learn=new Message(MSG_TYPE.PREPARE,0,0,0,0,0); //create a dummy Message object
+            msg_learn.parseMessage(Msg_Learn);
+            Message msg_learn_current=learner_queue[msg_learn.AID-network.numProposers()];
+
+            if(msg_learn_current==null)
+                learner_queue[msg_learn.AID-network.numProposers()]=msg_learn;
+	    else if(msg_learn_current.Value_Pnum<msg_learn.Value_Pnum)
+                learner_queue[msg_learn.AID-network.numProposers()]=msg_learn;
+            for(int i=0;i<network.numAcceptors();i++){
+              msg_learn_current=learner_queue[i];
+              if(msg_learn_current!=null){
+                if(learn_val.get(msg_learn_current.Value)==null)
+                  learn_val.put(msg_learn_current.Value,1);
+                else{ 
+                  learn_val.put(msg_learn_current.Value,learn_val.get(msg_learn_current.Value)+1);
+                  if(learn_val.get(msg_learn_current.Value)>network.numAcceptors()/2){
+		    c.decide(msg_learn_current.Value);
+                    System.out.println("Value Learnt:"+ msg_learn.Value);
+                    DECIDED=1;
+                  }
+                }
+              }
+            }
           }
           Thread.sleep(1000);
         }

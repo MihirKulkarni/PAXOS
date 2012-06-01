@@ -1,10 +1,12 @@
 package Paxos;
+import java.util.HashMap; 
 class samp{
 public static void main(String args[]){
-System.out.println(5/2);
+HashMap<Integer, Integer> learn = new HashMap<Integer, Integer>();
+learn.put(3,4);
+System.out.println(learn.get(3));
+learn.put(3,(learn.get(5))+1);
+System.out.println(learn.get(3));
 
-      Message promise_queue[]=new Message[5]; 
-   	        int test[]=new int[5];
-System.out.println(test[2]);
-}
+ }
 }
