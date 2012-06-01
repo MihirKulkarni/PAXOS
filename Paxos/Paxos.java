@@ -79,7 +79,7 @@ System.out.println("$$"+PID+"$$"+cur_Pnum);
 //parse the received message to the Message object.
                 switch(m.msg_type){
                   case PROMISE: //if the proposer received promise, send a accept only if it contains Pnum=cur_Pnum.
-                    if(guaranteed_flag==1 && m.Pnum>=guaranteed_Pnum){ //We already got a guarantee from majority so just accept what we already agreed
+                    if(guaranteed_flag==1 && m.Pnum==guaranteed_Pnum){ //We already got a guarantee from majority so just accept what we already agreed
           	      Message m_accept=new Message(MSG_TYPE.ACCEPT,myindex,m.AID,m.Pnum,-1,guaranteed_value);   
                       c.sendMessage(m.AID,m_accept.createMessage());
                       System.out.println("DP P-"+myindex+" sending ACCEPT msg for past run to A-"+m.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+guaranteed_value);
@@ -191,6 +191,13 @@ System.out.println("$$"+PID+"$$"+cur_Pnum);
                         rerun++;
                     }
                     if(rerun>network.numAcceptors()/2){ //now start a new run reset all state variables
+                      CONSENSUS=0; //1->after reaching 
+                      promise_queue=new Message[network.numAcceptors()]; 
+                      Acceptor_decisions=new int[network.numAcceptors()]; //1->Accept , -1->NACK_Accept
+                      guaranteed_value=-1;
+                      guaranteed_Pnum=-1;  
+	              guaranteed_flag=0;
+
                       System.out.println("P-"+myindex+"Recvd NACK_ACCEPTED from from majority for PNum: "+m.Pnum+""+cur_Pnum+" and value: "+m.Value+", hence send fresh PREPARE");
 		      cur_Pnum=nextProposalNumber(myindex,cur_Pnum);
 System.out.println(cur_Pnum+"$$"+myindex);
@@ -219,79 +226,67 @@ System.out.println(cur_Pnum+"$$"+myindex);
       }
       // Code for Acceptor Behaviour
       // Code for Acceptor Behaviour
-			if(c.index>=network.numProposers && c.index<(network.numProposers+network.numAcceptors)) {
+      if(c.index>=network.numProposers && c.index<(network.numProposers+network.numAcceptors)) {
       /* Initialize the highest proposal number received so far
 			 * and the value if any proposal has been accepted */
 
-				int max_pnum = -1;								// highest pnum for which acceptor has send a PROMISE
-				int val = -1;											// value it has accepted
-				int val_pnum = -1;								// corresponding pnum for the accepted value above
-				boolean hasAccepted = false;
-				//Acceptor code goes here
-				while(true) {
-					Message m1 = new Message(MSG_TYPE.PROMISE, -1, -1, -1, -1, -1);
-					String msg_st = c.receiveMessage();
-					Message m2;
-					if(msg_st != null) {
-						m1.parseMessage(msg_st);
-						// switch case to handle all msg_type
-						switch (m1.msg_type) {
-						case PREPARE:
-						
-							/*	This is when the message received is PREPARE.
-							*	If the proposal number is greater than highest proposal number this acceptor has PROMISEd,
-							*	it will send a PROMISE message.
-							*
-							*	It will also handle the case when the acceptor has accepted a value but the proposal number
-							*	is greater than it has PROMISEd, by sending a PROMISE with the val and corresponding val_pnum
-							*	set to one it has accepted. */
-
-							if(m1.Pnum >= max_pnum) {				// change max proposal number promised only when it is greater than current
-								max_pnum = m1.Pnum;
-								m2 = new Message(MSG_TYPE.PROMISE, m1.PID, m1.AID, max_pnum, val_pnum, val);
-								c.sendMessage(m1.PID, m2.createMessage());
-							}
-							else {
-								m2 = new Message(MSG_TYPE.NACK_PROMISE, m1.PID, m1.AID, max_pnum, -1, -1);		// sending a NACK_PROMISE when proposal's pnum < max_pnum
-								c.sendMessage(m1.PID, m2.createMessage());
-							}
-							break;
-
-			      case ACCEPT:
-
-
-							if(m1.Pnum == max_pnum) {
-								val = m1.Value;
-								val_pnum = m1.Pnum;
-								hasAccepted = true;
-
-								/* Send the accepted value to learner only when it is accepted for the first time
-								 * hasAccepted boolean takes care of this */
-
-							  Message m3 = new Message(MSG_TYPE.LEARN, m1.PID, m1.AID, max_pnum, val_pnum, val);
-
-								/* send message to all learners */
-
-						    for(int i=network.numProposers+network.numAcceptors; i<network.totalProcesses; i++) {
-									c.sendMessage(i, m3.createMessage());
-								}
-					 		  m2 = new Message(MSG_TYPE.ACCEPTED, m1.PID, m1.AID, max_pnum, val_pnum, val);
-							}
-							else {
-		
-								/* Send a NACK_ACCEPTED message with current max_pnum when received Pnum in ACCEPT message is less than max_pnum
-								 * which was promised by the acceptor. */
-					
-								m2 = new Message(MSG_TYPE.NACK_ACCEPTED, m1.PID, m1.AID, max_pnum, -1,-1);
-							}
-							c.sendMessage(m1.PID, m2.createMessage());
-							break;
-	    
-						default:
-				      break;
+	int max_pnum = -1;								// highest pnum for which acceptor has send a PROMISE
+	int val = -1;											// value it has accepted
+	int val_pnum = -1;								// corresponding pnum for the accepted value above
+	boolean hasAccepted = false;
+	//Acceptor code goes here
+	while(true) {
+	  Message m1 = new Message(MSG_TYPE.PROMISE, -1, -1, -1, -1, -1);
+	  String msg_st = c.receiveMessage();
+	  Message m2;
+	  if(msg_st != null) {
+	    m1.parseMessage(msg_st);
+	    // switch case to handle all msg_type
+	    switch (m1.msg_type) {
+	      case PREPARE:
+	      /*	This is when the message received is PREPARE.
+	       *	If the proposal number is greater than highest proposal number this acceptor has PROMISEd,
+	       *	it will send a PROMISE message.
+	       *
+	       *	It will also handle the case when the acceptor has accepted a value but the proposal number
+	       *	is greater than it has PROMISEd, by sending a PROMISE with the val and corresponding val_pnum
+	       *	set to one it has accepted. */
+              if(m1.Pnum >= max_pnum) {				// change max proposal number promised only when it is greater than current
+		max_pnum = m1.Pnum;
+		m2 = new Message(MSG_TYPE.PROMISE, m1.PID, m1.AID, max_pnum, val_pnum, val);
+		c.sendMessage(m1.PID, m2.createMessage());
+	      }
+	      else {
+		m2 = new Message(MSG_TYPE.NACK_PROMISE, m1.PID, m1.AID, max_pnum, -1, -1);		// sending a NACK_PROMISE when proposal's pnum < max_pnum
+		c.sendMessage(m1.PID, m2.createMessage());
+	      }
+	      break;
+	      case ACCEPT:
+		if(m1.Pnum == max_pnum) {
+ 		  val = m1.Value;
+		  val_pnum = m1.Pnum;
+		  hasAccepted = true;
+		  /* Send the accepted value to learner only when it is accepted for the first time
+		   * hasAccepted boolean takes care of this */
+		  Message m3 = new Message(MSG_TYPE.LEARN, m1.PID, m1.AID, max_pnum, val_pnum, val);
+		  /* send message to all learners */
+ 	          for(int i=network.numProposers+network.numAcceptors; i<network.totalProcesses; i++) {
+		    c.sendMessage(i, m3.createMessage());
+		  }
+		  m2 = new Message(MSG_TYPE.ACCEPTED, m1.PID, m1.AID, max_pnum, val_pnum, val);
+		}
+		else {
+		/* Send a NACK_ACCEPTED message with current max_pnum when received Pnum in ACCEPT message is less than max_pnum
+		 * which was promised by the acceptor. */
+		  m2 = new Message(MSG_TYPE.NACK_ACCEPTED, m1.PID, m1.AID, max_pnum, -1,-1);
+		}
+		c.sendMessage(m1.PID, m2.createMessage());
+		break;
+	      default:
+		break;
             }
-					}
-				}
+	  }
+	}
       }
       if(myindex>=(network.numProposers+network.numAcceptors)){
 	//Learner code goes here
