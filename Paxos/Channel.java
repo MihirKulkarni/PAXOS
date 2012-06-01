@@ -27,7 +27,7 @@ public class Channel {
   /** Call this function to determine whether a proposer is distinguished. */
 
   public boolean isDistinguished() {
-    if (index<(network.numProposers-1))
+    if (index<(network.numProposers))
       return true;
     if (index>=network.numProposers)
       throw new Error("Non-proposers should not be asking whether they are distinguished");
