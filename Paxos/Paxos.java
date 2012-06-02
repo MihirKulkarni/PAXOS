@@ -19,8 +19,9 @@ public class Paxos implements Runnable{
   /** This should start your Paxos implementation and return immediately. */
   public void runPaxos() {
 //
-    System.out.println(network.totalProcesses+" "+network.numProposers()+" "+network.numAcceptors()+" "+network.numLearners()+" "+network.decision);
-    for(int i=0;i<network.totalProcesses;i++){
+  int totalprocess=network.numProposers()+network.numAcceptors()+network.numLearners();
+    System.out.println(totalprocess+" "+network.numProposers()+" "+network.numAcceptors()+" "+network.numLearners()+" "+network.decision);
+    for(int i=0;i<totalprocess;i++){
       Thread t= new Thread(this,""+i);
       t.start();
     }
@@ -47,7 +48,8 @@ public class Paxos implements Runnable{
       Thread t= Thread.currentThread();
       int myindex=Integer.parseInt(t.getName());
       Channel c=network.getChannel(myindex);
-      if(myindex<network.numProposers){
+//System.out.println(myindex+"my index");
+      if(myindex<network.numProposers()){
 	//Proposer code goes here
 	//Proposer Initiated 
 	//Send Prepare 
@@ -63,10 +65,10 @@ public class Paxos implements Runnable{
 	  //I am distinguished proposer, if not I shall be idle and querying constantly if I become one.
 	    while(c.receiveMessage()!=null){} //Clear all previous messages and start fresh prepare
             cur_Pnum=nextProposalNumber(myindex,cur_Pnum);
-	    for(int a=network.numProposers();a<(network.numProposers+network.numAcceptors);a++){
+	    for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
  	      Message m_prepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,-1);
               c.sendMessage(a,m_prepare.createMessage());
-//	      System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" with PNum:"+cur_Pnum);
+	      System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" with PNum:"+cur_Pnum);
             }
 	    while(true){
               if(!c.isDistinguished())
@@ -108,20 +110,20 @@ public class Paxos implements Runnable{
                       //Add messages to local queue or discard those messages
                       if(msg_promQ==null){
 			promise_queue[m.AID-network.numProposers()]=m; //new PROMISE recvd
-//	                System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
+	                System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
                       }
                       else{
                         if(m.Value==-1 && msg_promQ.Value==-1 && msg_promQ.Pnum<m.Pnum){
                           promise_queue[m.AID-network.numProposers()]=m; //new latest PROMISE recvd to replace existing unknown value.
-//	                  System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
+	                  System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
                         }
                         if(m.Value!=-1 && msg_promQ.Value!=-1 && msg_promQ.Pnum<m.Pnum){
                           promise_queue[m.AID-network.numProposers()]=m; //new latest PROMISE recvd to replace existing known value.
-//	                  System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
+	                  System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
                         }
                         if(m.Value!=-1 && msg_promQ.Value==-1){
                           promise_queue[m.AID-network.numProposers()]=m; //new latest PROMISE recvd with value to replace existing unknown value.
-//	                  System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
+	                  System.out.println("P-"+myindex+": Recvd new PROMISE from A-"+m.AID+" and added to empty queue");
                         }
                       }
 		      //Done with adding messages to local queue
@@ -149,11 +151,11 @@ public class Paxos implements Runnable{
                           guaranteed_Pnum=cur_Pnum;
                         }  
                         if(c.isDistinguished()){                    
-  	                  for(int a=network.numProposers();a<(network.numProposers+network.numAcceptors);a++){
+  	                  for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
 			    if(promise_queue[a-network.numProposers()]!=null){
               	              Message m_accept=new Message(MSG_TYPE.ACCEPT,myindex,a,m.Pnum,-1,guaranteed_value);   
                               c.sendMessage(a,m_accept.createMessage());
-      //                        System.out.println("P-"+myindex+"Sent ACCEPT message to A-"+m_accept.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+guaranteed_value);
+                              System.out.println("P-"+myindex+"Sent ACCEPT message to A-"+m_accept.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+guaranteed_value);
                             }
                           }
                         }
@@ -169,12 +171,12 @@ public class Paxos implements Runnable{
                         System.out.println("Reached MAX_PROPNUM, bail out by throwing exception");
  	              Message m_newprepare=new Message(MSG_TYPE.PREPARE,myindex,m.AID,cur_Pnum,-1,-1);
                       c.sendMessage(m.AID,m_newprepare.createMessage());
-	  //            System.out.println("NACK_Promise recvd so DP sending Prepare Message to A-"+m_newprepare.AID +" with PNum:"+cur_Pnum);
+	              System.out.println("NACK_Promise recvd so DP sending Prepare Message to A-"+m_newprepare.AID +" with PNum:"+cur_Pnum);
                       promise_queue[m.AID-network.numProposers()]=null;
                     }
                     break;
                   case ACCEPTED: //value has been accepted. Keep quiet.
-         //           System.out.println("P-"+myindex+"Recvd ACCEPTED from A-"+m.AID+" for PNum:"+m.Pnum+""+cur_Pnum+" and value: "+m.Value);
+                    System.out.println("P-"+myindex+"Recvd ACCEPTED from A-"+m.AID+" for PNum:"+m.Pnum+""+cur_Pnum+" and value: "+m.Value);
 		    Acceptor_decisions[m.AID-network.numProposers()]=1;
                     int decision_made=0;
 		    for(int i=0;i<network.numAcceptors();i++){
@@ -199,14 +201,14 @@ public class Paxos implements Runnable{
                       guaranteed_Pnum=-1;  
 	              guaranteed_flag=0;
 
-         //             System.out.println("P-"+myindex+"Recvd NACK_ACCEPTED from from majority for PNum: "+m.Pnum+""+cur_Pnum+" and value: "+m.Value+", hence send fresh PREPARE");
+                      System.out.println("P-"+myindex+"Recvd NACK_ACCEPTED from from majority for PNum: "+m.Pnum+""+cur_Pnum+" and value: "+m.Value+", hence send fresh PREPARE");
 		      cur_Pnum=nextProposalNumber(myindex,cur_Pnum);
 		      if(cur_Pnum==-1)
                         System.out.println("Reached MAX_PROPNUM, bail out by throwing exception");
- 	              for(int a=network.numProposers();a<(network.numProposers+network.numAcceptors);a++){
+ 	              for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
  	                Message m_prepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,-1);
                         c.sendMessage(a,m_prepare.createMessage());
-//	                System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" after NACK_ACCEPT with PNum:"+cur_Pnum);
+	                System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" after NACK_ACCEPT with PNum:"+cur_Pnum);
                       }
                     }
                     break;
@@ -226,7 +228,8 @@ public class Paxos implements Runnable{
       }
       // Code for Acceptor Behaviour
       // Code for Acceptor Behaviour
-      if(c.index>=network.numProposers && c.index<(network.numProposers+network.numAcceptors)) {
+System.out.println(network.numProposers()+" "+network.numLearners()+" "+network.numAcceptors()+" "+myindex);
+      if(myindex>=network.numProposers() && myindex<(network.numProposers()+network.numAcceptors())) {
       /* Initialize the highest proposal number received so far
 			 * and the value if any proposal has been accepted */
 
@@ -236,6 +239,7 @@ public class Paxos implements Runnable{
 	boolean hasAccepted = false;
 	//Acceptor code goes here
 	while(true) {
+          
 	  Message m1 = new Message(MSG_TYPE.PROMISE, -1, -1, -1, -1, -1);
 	  String msg_st = c.receiveMessage();
 	  Message m2;
@@ -270,7 +274,9 @@ public class Paxos implements Runnable{
 		   * hasAccepted boolean takes care of this */
 		  Message m3 = new Message(MSG_TYPE.LEARN, m1.PID, m1.AID, max_pnum, val_pnum, val);
 		  /* send message to all learners */
- 	          for(int i=network.numProposers+network.numAcceptors; i<network.totalProcesses; i++) {
+                 int totalprocess=network.numProposers()+network.numAcceptors()+network.numLearners();
+  
+ 	          for(int i=network.numProposers()+network.numAcceptors(); i<totalprocess; i++) {
 		    c.sendMessage(i, m3.createMessage());
 		  }
 		  m2 = new Message(MSG_TYPE.ACCEPTED, m1.PID, m1.AID, max_pnum, val_pnum, val);
@@ -288,7 +294,7 @@ public class Paxos implements Runnable{
 	  }
 	}
       }
-      if(myindex>=(network.numProposers+network.numAcceptors)){
+      if(myindex>=(network.numProposers()+network.numAcceptors())){
 	//Learner code goes here
         int DECIDED=0; // 1->Decision submitted
 	System.out.println("I am learner : "+myindex);

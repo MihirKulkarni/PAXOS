@@ -2,24 +2,27 @@ package Test;
 import Paxos.*;
 import java.util.LinkedList;
 
-public class TestChannel extends Channel{
-  Network network;
-  int index;
+public class TestChannel extends Channel {
+  TestNetwork network;
+  int test_index;
 
   /** Send the message message to process destination. */
 
   public void sendMessage(int destination, String message) {
     synchronized(network.queues[destination]) {
       network.queues[destination].add(message);
+//System.out.println(destination);
     }
   }
 
   /** Receive a message. */
 
   public String receiveMessage() {
-    synchronized(network.queues[index]) {
-      if (!network.queues[index].isEmpty())
-	return network.queues[index].remove();
+    synchronized(network.queues[test_index]) {
+//System.out.println(network.queues[test_index].size()+""+test_index);
+
+      if (!network.queues[test_index].isEmpty())
+	return network.queues[test_index].remove();
       else
 	return null;
     }
@@ -28,9 +31,9 @@ public class TestChannel extends Channel{
   /** Call this function to determine whether a proposer is distinguished. */
 
   public boolean isDistinguished() {
-    if (index<(network.numProposers))
+    if (test_index<(network.numProposers))
       return true;
-    if (index>=network.numProposers)
+    if (test_index>=network.numProposers)
       throw new Error("Non-proposers should not be asking whether they are distinguished");
     return false;
   }
@@ -38,7 +41,7 @@ public class TestChannel extends Channel{
   /** Call this function to register a decision by a learner. */
 
   public void decide(int decision) {
-    if (index<(network.numProposers+network.numAcceptors))
+    if (test_index<(network.numProposers+network.numAcceptors))
       throw new Error("Non-learner should not be deciding a value");
 
     if (decision>=network.numProposers)
@@ -57,9 +60,8 @@ public class TestChannel extends Channel{
   /** Call this function to get the initial value for a proposer. */
 
   public int getInitialValue() {
-    if (index>=network.numProposers)
+    if (test_index>=network.numProposers)
       throw new Error("Non-proposers should not be asking for initial value");
-    return index;
+    return test_index;
   }
-
 }

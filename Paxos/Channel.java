@@ -9,7 +9,7 @@ public class Channel {
 
   public void sendMessage(int destination, String message) {
     synchronized(network.queues[destination]) {
-      network.queues[destination].add(message);
+      network.queues[destination].push(message);
     }
   }
 
@@ -18,7 +18,7 @@ public class Channel {
   public String receiveMessage() {
     synchronized(network.queues[index]) {
       if (!network.queues[index].isEmpty())
-	return network.queues[index].remove();
+	return network.queues[index].pop();
       else
 	return null;
     }

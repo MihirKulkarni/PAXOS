@@ -1,6 +1,6 @@
 package Paxos;
 import java.util.LinkedList;
-
+import java.util.Stack;
 public class Network {
   int totalProcesses;
   int numProposers;
@@ -9,6 +9,7 @@ public class Network {
   int decision=-1;
 
   LinkedList<String>[] queues;
+//Stack<String>[] queues=new Stack<String>()[];
 
   /** Create a network with numProposers proposes, numAcceptors
    * acceptors, and numLearners learners.*/
