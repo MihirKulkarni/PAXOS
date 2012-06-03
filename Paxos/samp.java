@@ -1,12 +1,7 @@
-package Paxos;
-import java.util.HashMap; 
 class samp{
-public static void main(String args[]){
-HashMap<Integer, Integer> learn = new HashMap<Integer, Integer>();
-learn.put(3,4);
-System.out.println(learn.get(3));
-learn.put(3,(learn.get(5))+1);
-System.out.println(learn.get(3));
-
- }
+  public static void main(String args[]){
+HashMap<String, Integer> learn_val = new HashMap<String, Integer>();
+	learn_val.put("hi",2)
+    System.out.println(learn_val.get("hi"));
+  }
 }

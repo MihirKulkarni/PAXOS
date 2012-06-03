@@ -1,7 +1,7 @@
 package Test;
 import Paxos.*;
 import java.util.LinkedList;
-import java.util.Exception;
+import java.util.EmptyStackException;
 
 public class TestChannel extends Channel {
   TestNetwork test_network;
@@ -32,8 +32,8 @@ public class TestChannel extends Channel {
   public String receiveMessage() {
     synchronized(test_network.test_queues[test_index]) {
       if(terminate==1){
-        System.out.println("Terminating Process"+test_index);
-        throw new Exception();
+        System.out.println("Terminating Thread"+test_index);
+        throw new EmptyStackException();
       }
 //System.out.println(test_network.test_queues[test_index].size()+""+test_index);
       if(block_channel==1){

@@ -166,13 +166,15 @@ public class Paxos implements Runnable{
                     break;
                   case NACK_PROMISE: 
  		    if(c.isDistinguished() && guaranteed_Pnum<=m.Pnum){                
-	              cur_Pnum=nextProposalNumber(myindex,m.Pnum); //Acceptor shoud send the highest promised Pnum so far. so that Proposer can generate a even higher Pnum.
+	              cur_Pnum=nextProposalNumber(myindex,cur_Pnum>m.Pnum?cur_Pnum:m.Pnum); //Acceptor shoud send the highest promised Pnum so far. so that Proposer can generate a even higher Pnum.
    		      if(cur_Pnum==-1)
                         System.out.println("Reached MAX_PROPNUM, bail out by throwing exception");
- 	              Message m_newprepare=new Message(MSG_TYPE.PREPARE,myindex,m.AID,cur_Pnum,-1,-1);
-                      c.sendMessage(m.AID,m_newprepare.createMessage());
-//	              System.out.println("NACK_Promise recvd so DP sending Prepare Message to A-"+m_newprepare.AID +" with PNum:"+cur_Pnum);
-                      promise_queue[m.AID-network.numProposers()]=null;
+ 	              for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
+ 	                Message m_newprepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,-1);
+                        c.sendMessage(a,m_newprepare.createMessage());
+  	                System.out.println("NACK_Promise recvd so DP sending Prepare Message to A-"+m_newprepare.AID +" with PNum:"+cur_Pnum);
+                        promise_queue[a-network.numProposers()]=null;
+                      }  
                     }
                     break;
                   case ACCEPTED: //value has been accepted. Keep quiet.
@@ -294,32 +296,33 @@ public class Paxos implements Runnable{
       }
       if(myindex>=(network.numProposers()+network.numAcceptors())){
 	//Learner code goes here
-        int DECIDED=0; // 1->Decision submitted
-	System.out.println("I am learner : "+myindex);
-        Message learner_queue[]=new Message[network.numAcceptors()]; 
-        HashMap<Integer, Integer> learn_val = new HashMap<Integer, Integer>();
-	while(true){
+        System.out.println("I am learner : "+myindex);
+        HashMap<String, Integer> learner_map = new HashMap<String, Integer>(); //format : <<AID.PropNum,Value>>
+	HashMap<Integer, Integer> DECIDED = new HashMap<Integer, Integer>(); //DECIDED for each Prop_Num null->not decided and 1->decided
+        while(true){
           String Msg_Learn=c.receiveMessage();
-          if(Msg_Learn!=null && DECIDED==0){
+          if(Msg_Learn!=null){
   	    Message msg_learn=new Message(MSG_TYPE.PREPARE,0,0,0,0,0); //create a dummy Message object
             msg_learn.parseMessage(Msg_Learn);
-            Message msg_learn_current=learner_queue[msg_learn.AID-network.numProposers()];
-
-            if(msg_learn_current==null)
-                learner_queue[msg_learn.AID-network.numProposers()]=msg_learn;
-	    else if(msg_learn_current.Value_Pnum<msg_learn.Value_Pnum)
-                learner_queue[msg_learn.AID-network.numProposers()]=msg_learn;
-            for(int i=0;i<network.numAcceptors()&&DECIDED==0;i++){
-              msg_learn_current=learner_queue[i];
-              if(msg_learn_current!=null){
-                if(learn_val.get(msg_learn_current.Value)==null)
-                  learn_val.put(msg_learn_current.Value,1);
+            //putting decided value in hashmap
+            learner_map.put(msg_learn.AID+"."+msg_learn.Pnum,msg_learn.Value);            
+//            System.out.println("Recording msg: "+msg_learn.AID+"."+msg_learn.Pnum+" : "+msg_learn.Value);  
+            HashMap<Integer, Integer> learn_val = new HashMap<Integer, Integer>();
+	    for(int i=network.numProposers();i<network.numProposers()+network.numAcceptors()&&DECIDED.get(msg_learn.Pnum)==null;i++){
+              if(learner_map.get(i+"."+msg_learn.Pnum)!=null){
+                int cur_learn_val=learner_map.get(i+"."+msg_learn.Pnum);  
+                if(learn_val.get(cur_learn_val)==null){
+//                  System.out.println("Seeing 1st instance of :"+cur_learn_val+"for A-"+i); 
+                  learn_val.put(cur_learn_val,1);
+                }  
                 else{ 
-                  learn_val.put(msg_learn_current.Value,learn_val.get(msg_learn_current.Value)+1);
-                  if(learn_val.get(msg_learn_current.Value)>network.numAcceptors()/2){
-		    c.decide(msg_learn_current.Value);
-                    System.out.println("Value Learnt:"+ msg_learn.Value);
-                    DECIDED=1;
+                  learn_val.put(cur_learn_val,learn_val.get(cur_learn_val)+1);
+//                  System.out.println("Seeing next instance of :"+cur_learn_val+"for A-"+i);
+                  if(learn_val.get(cur_learn_val)>network.numAcceptors()/2){
+		    c.decide(cur_learn_val);
+                    System.out.println("Value Learnt for Prop_Num:"+msg_learn.Pnum+":"+ cur_learn_val);
+                    DECIDED.put(msg_learn.Pnum,1);
+                     
                   }
                 }
               }
