@@ -1,30 +1,50 @@
 package Test;
 import Paxos.*;
 import java.util.LinkedList;
+import java.util.Exception;
 
 public class TestChannel extends Channel {
   TestNetwork test_network;
   int test_index;
+  int terminate=0;//set to 1 to terminate;
+  int block_channel=0; //set to 1 to block messages
+       
 
   /** Send the message message to process destination. */
 
   public void sendMessage(int destination, String message) {
-    synchronized(test_network.queues[destination]) {
-      test_network.queues[destination].add(message);
-//System.out.println(destination);
+    synchronized(test_network.test_queues[destination]) {
+      test_network.test_queues[destination].add(message);
     }
   }
+  public void blockchannel(){
+    System.out.println("CHANNEL for process-"+test_index+" BLOCKED");
+    block_channel=1;
+  }
+  public void releasechannel(){
+    System.out.println("CHANNEL for process-"+test_index+" RELEASED");
+    block_channel=0;
+  }
+
 
   /** Receive a message. */
 
   public String receiveMessage() {
-    synchronized(test_network.queues[test_index]) {
-//System.out.println(test_network.queues[test_index].size()+""+test_index);
-
-      if (!test_network.queues[test_index].isEmpty())
-	return test_network.queues[test_index].remove();
-      else
-	return null;
+    synchronized(test_network.test_queues[test_index]) {
+      if(terminate==1){
+        System.out.println("Terminating Process"+test_index);
+        throw new Exception();
+      }
+//System.out.println(test_network.test_queues[test_index].size()+""+test_index);
+      if(block_channel==1){
+        return null;
+      }
+      else{    
+        if (!test_network.test_queues[test_index].isEmpty())
+	  return test_network.test_queues[test_index].remove();
+        else
+	  return null;
+      } 
     }
   }
 
@@ -56,7 +76,9 @@ public class TestChannel extends Channel {
       }
     }
   }
-
+  public void terminate(){
+	terminate=1;
+  }
   /** Call this function to get the initial value for a proposer. */
 
   public int getInitialValue() {

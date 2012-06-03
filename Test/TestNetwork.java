@@ -8,9 +8,9 @@ public class TestNetwork extends Network {
   int test_numAcceptors;
   int test_numLearners;
   int test_decision=-1;
-
-  LinkedList<String>[] queues;
-//Stack<String>[] queues=new Stack<String>()[];
+  TestChannel channels[]=new TestChannel[100];
+  LinkedList<String>[] test_queues;
+//Stack<String>[] test_queues=new Stack<String>()[];
 
   /** Create a network with test_numProposers proposes, test_numAcceptors
    * acceptors, and test_numLearners learners.*/
@@ -19,13 +19,14 @@ public class TestNetwork extends Network {
   public TestNetwork(int numProposers, int numAcceptors, int numLearners) {
     super(numProposers,numAcceptors,numLearners);
     test_totalProcesses=numProposers+numAcceptors+numLearners;
-    queues=new LinkedList[test_totalProcesses];
+    test_queues=new LinkedList[test_totalProcesses];
     for(int i=0;i<test_totalProcesses;i++) {
-      queues[i]=new LinkedList<String>();
+      test_queues[i]=new LinkedList<String>();
     }
     this.test_numProposers=numProposers;
     this.test_numAcceptors=numAcceptors;
     this.test_numLearners=numLearners;
+    channels=new TestChannel[test_totalProcesses];
   }
   
   public int numAcceptors() {
@@ -49,14 +50,25 @@ public class TestNetwork extends Network {
    *
    *   numAccepters+numProposes through
    *   numAccepters+numProposes+test_numLearners-1 should be Learners */
- 
+  public void block_channel(int processID,int action){ //action 0->release, 1->block
+    if(action==0) 
+      channels[processID].releasechannel();   
+    if(action==1) 
+      channels[processID].blockchannel();   
+//    System.out.println("CHANNEL TO BLOCK"+);
+  }
+
+  public void terminate_run(){
+    for(int i=0;i<test_totalProcesses;i++)
+      channels[i].terminate();
+  }
   public TestChannel getChannel(int processID) {
     if (processID<0 || processID>= test_totalProcesses) {
       throw new Error("Invalid process ID.");
     }
     TestChannel c=new TestChannel();
     c.test_index=processID;
-     
+    channels[processID]=c; 
     System.out.println("Setting value for test_index"+processID+""+c.test_index);
     c.test_network=this;
     return c;
