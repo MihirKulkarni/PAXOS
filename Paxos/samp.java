@@ -1,7 +1,14 @@
+package Paxos;
+import java.util.Date;
+import java.lang.Thread;
 class samp{
   public static void main(String args[]){
-HashMap<String, Integer> learn_val = new HashMap<String, Integer>();
-	learn_val.put("hi",2)
-    System.out.println(learn_val.get("hi"));
+try{
+	Date d1=new Date();
+	Thread.sleep(200);
+	Date d2=new Date();
+    System.out.println(Integer.MAX_VALUE);
+}catch(Exception e){}
+
   }
 }

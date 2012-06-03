@@ -6,7 +6,7 @@ import java.lang.Thread;
 public class Test {
 public static void test_0(){
   try{
-    TestNetwork n=new TestNetwork(4,3,3);
+    TestNetwork n=new TestNetwork(3,3,3);
     Paxos p=new Paxos(n);
     p.runPaxos();
 //    Thread.sleep(10000);

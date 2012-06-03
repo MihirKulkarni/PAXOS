@@ -62,6 +62,7 @@ public class TestNetwork extends Network {
     for(int i=0;i<test_totalProcesses;i++)
       channels[i].terminate();
   }
+
   public TestChannel getChannel(int processID) {
     if (processID<0 || processID>= test_totalProcesses) {
       throw new Error("Invalid process ID.");

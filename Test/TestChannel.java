@@ -72,7 +72,7 @@ public class TestChannel extends Channel {
 	test_network.test_decision=decision;
       else {
 	if (test_network.test_decision!=decision)
-	  System.out.println("Disagreement between Learners");
+	  System.out.println("Disagreement between Learners. PAXOS BROKEN!!! :)");
       }
     }
   }

@@ -2,19 +2,14 @@ package Paxos;
 import java.lang.Thread;
 import java.util.Random;
 import java.util.HashMap; 
-
+import java.util.Date;
 enum MSG_TYPE {PREPARE, PROMISE, ACCEPT, ACCEPTED,LEARN,NACK_PROMISE,NACK_ACCEPTED};
 
 public class Paxos implements Runnable{
   Network network;
-  int MAX_PROPNUM=20000;
-  int[] DisjointProposalNum=new int[MAX_PROPNUM];
+  int MAX_PROPNUM=Integer.MAX_VALUE;
   public Paxos(Network network) {
     this.network=network;
-    Random rand = new Random(20120528);
-    for(int i=0;i<MAX_PROPNUM;i++){
-      DisjointProposalNum[i]=i;
-    }
 }
   /** This should start your Paxos implementation and return immediately. */
   public void runPaxos() {
@@ -31,11 +26,11 @@ public class Paxos implements Runnable{
 //System.out.println("$$"+PID+"$$"+cur_Pnum);
     int i=0;
     while(true){
-      if(DisjointProposalNum[i]<=cur_Pnum)
+      if(i<=cur_Pnum)
 	i++;
       else{
-        if(DisjointProposalNum[i]%network.numProposers()==PID)
-          return DisjointProposalNum[i];
+        if(i%network.numProposers()==PID)
+          return i;
         else
           i++;
       }
@@ -60,6 +55,7 @@ public class Paxos implements Runnable{
         int guaranteed_value=-1;
         int guaranteed_Pnum=-1;  
 	int guaranteed_flag=0;
+        Date start_time=new Date();
 	while(true){
   	  if(c.isDistinguished()){ 
 	  //I am distinguished proposer, if not I shall be idle and querying constantly if I become one.
@@ -76,7 +72,20 @@ public class Paxos implements Runnable{
 	      String msg=c.receiveMessage(); // infintely query Message buffer for new message;
 //              if(timeout)
 // 		should resend prepare
+              Date cur_time=new Date();
+	      long elapsed_time=cur_time.getTime()-start_time.getTime();
+              if(elapsed_time>15000){  
+                System.out.println("P-"+myindex+"HIGH TIME to start new run, Elapsed Time: "+elapsed_time);
+                cur_Pnum=nextProposalNumber(myindex,cur_Pnum);
+	        for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
+ 	          Message m_prepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,-1);
+                  c.sendMessage(a,m_prepare.createMessage());
+	          System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" with PNum:"+cur_Pnum);
+                }
+                start_time=new Date();  
+              } 
               if(msg!=null){
+                start_time=new Date(); 
 	        Message m=new Message(MSG_TYPE.PREPARE,-1,-1,-1,-1,-1); //create a dummy Message object
    	        m.parseMessage(msg); 
 //parse the received message to the Message object.
@@ -172,7 +181,7 @@ public class Paxos implements Runnable{
  	              for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
  	                Message m_newprepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,-1);
                         c.sendMessage(a,m_newprepare.createMessage());
-  	                System.out.println("NACK_Promise recvd so DP sending Prepare Message to A-"+m_newprepare.AID +" with PNum:"+cur_Pnum);
+//  	                System.out.println("NACK_Promise recvd so DP sending Prepare Message to A-"+m_newprepare.AID +" with PNum:"+cur_Pnum);
                         promise_queue[a-network.numProposers()]=null;
                       }  
                     }
