@@ -242,7 +242,7 @@ public class Paxos implements Runnable{
 	    }
 	  }
 	  else{
-	    System.out.println("I am not Distinguished Proposer, so sitting idle");
+	    System.out.println("I am not Distinguished Proposer, so sitting idle P-"+myindex);
 	    Thread.sleep(1000);
 	  }
 	}

@@ -50,6 +50,18 @@ public class TestNetwork extends Network {
    *
    *   numAccepters+numProposes through
    *   numAccepters+numProposes+test_numLearners-1 should be Learners */
+
+  public TestChannel getChannel(int processID) {
+    if (processID<0 || processID>= test_totalProcesses) {
+      throw new Error("Invalid process ID.");
+    }
+    TestChannel c=new TestChannel();
+    c.test_index=processID;
+    channels[processID]=c; 
+    c.test_network=this;
+    return c;
+  }
+  
   public void block_channel(int processID,int action){ //action 0->release, 1->block
     if(action==0) 
       channels[processID].releasechannel();   
@@ -62,15 +74,10 @@ public class TestNetwork extends Network {
     for(int i=0;i<test_totalProcesses;i++)
       channels[i].terminate();
   }
-
-  public TestChannel getChannel(int processID) {
-    if (processID<0 || processID>= test_totalProcesses) {
-      throw new Error("Invalid process ID.");
-    }
-    TestChannel c=new TestChannel();
-    c.test_index=processID;
-    channels[processID]=c; 
-    c.test_network=this;
-    return c;
+  
+  public void change_DPmode(int mode){
+    for(int i=0;i<test_numProposers;i++)
+      channels[i].DP_mode=mode;
   }
+
 }
