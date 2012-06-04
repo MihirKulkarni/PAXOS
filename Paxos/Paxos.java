@@ -242,7 +242,7 @@ public class Paxos implements Runnable{
 	    }
 	  }
 	  else{
-	    System.out.println("I am not Distinguished Proposer, so sitting idle P-"+myindex);
+//	    System.out.println("I am not Distinguished Proposer, so sitting idle P-"+myindex);
 	    Thread.sleep(1000);
 	  }
 	}
@@ -316,7 +316,7 @@ public class Paxos implements Runnable{
       }
       if(myindex>=(network.numProposers()+network.numAcceptors())){
 	//Learner code goes here
-        System.out.println("I am learner : "+myindex);
+//        System.out.println("I am learner : "+myindex);
         HashMap<String, Integer> learner_map = new HashMap<String, Integer>(); //format : <<AID.PropNum,Value>>
 	HashMap<Integer, Integer> DECIDED = new HashMap<Integer, Integer>(); //DECIDED for each Prop_Num null->not decided and 1->decided
         while(true){
@@ -340,7 +340,7 @@ public class Paxos implements Runnable{
 //                  System.out.println("Seeing next instance of :"+cur_learn_val+"for A-"+i);
                   if(learn_val.get(cur_learn_val)>network.numAcceptors()/2){
 		    c.decide(cur_learn_val);
-                    System.out.println("Value Learnt for Prop_Num:"+msg_learn.Pnum+":"+ cur_learn_val);
+                    System.out.println("Value Learnt for Prop_Num:"+msg_learn.Pnum+":"+ cur_learn_val + " by learner " + myindex);
                     DECIDED.put(msg_learn.Pnum,1);
                      
                   }
