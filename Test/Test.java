@@ -114,6 +114,25 @@ public static void test_5() {
 	catch (Exception e) {}
 }
 
+public static void test_6(){
+  try{
+    TestNetwork n=new TestNetwork(3,3,2);
+    Paxos p=new Paxos(n);
+    p.runPaxos();
+    Thread.sleep(500);
+   n.change_DPmode(3,2);
+    n.lossy_channel(6,1);
+    n.lossy_channel(7,1);
+    Thread.sleep(1000);
+    n.lossy_channel(6,0);
+    n.lossy_channel(7,0);
+
+    Thread.sleep(100000);
+    n.terminate_run();
+    System.out.println("\n\nTERMINATED PAXOS RUN-1");
+  }
+  catch(Exception e){}
+}
 
   public static void main(String[] inputs) {
 //        test_0();
@@ -121,7 +140,8 @@ public static void test_5() {
 //        test_2();
 //        test_3();
 //				test_4();
-				test_5();
+//				test_5();
+       test_6();
        
     } 
 }

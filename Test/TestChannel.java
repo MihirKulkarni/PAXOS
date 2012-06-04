@@ -11,6 +11,8 @@ public class TestChannel extends Channel {
   int block_channel=0; //set to 1 to block messages
   int DP_mode=0; //0->single DP, 1-> All DP, 2-> Cycle DP, 3->make specific proposer as DP
   int requested_DP=-1; // process ID for DP_mode=3
+  int lose_msg=0; //0->normal operation 1->lose all message in queue
+
   /** Send the message message to process destination. */
 
   public void sendMessage(int destination, String message) {
@@ -34,6 +36,12 @@ public class TestChannel extends Channel {
   public String receiveMessage() {
     throw_exception();
     synchronized(test_network.test_queues[test_index]) {
+      if(lose_msg==1){
+        while(!test_network.test_queues[test_index].isEmpty())
+          test_network.test_queues[test_index].remove();
+        System.out.println("Removed all msgs for P-"+test_index);
+      }
+
       if(block_channel==1){
         return null;
       }

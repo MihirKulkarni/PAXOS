@@ -72,13 +72,18 @@ public class TestNetwork extends Network {
 
   public void terminate_run(){
     for(int i=0;i<test_totalProcesses;i++)
-      channels[i].terminate();
+      channels[i].terminate=1;
   }
   
   public void change_DPmode(int mode,int PID){
     for(int i=0;i<test_numProposers;i++){
       channels[i].DP_mode=mode;
       channels[i].requested_DP=PID; 
+    }
   }
+
+  public void lossy_channel(int PID,int flag){
+    channels[PID].lose_msg=flag;
   }
+
 }

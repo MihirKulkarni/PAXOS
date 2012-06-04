@@ -298,7 +298,9 @@ public class Paxos implements Runnable{
   
  	          for(int i=network.numProposers()+network.numAcceptors(); i<totalprocess; i++) {
 		    c.sendMessage(i, m3.createMessage());
+                    System.out.println("Sent ACCEPTED to for PropNum="+m3.Pnum +" L-"+i);
 		  }
+
 		  m2 = new Message(MSG_TYPE.ACCEPTED, m1.PID, m1.AID, max_pnum, val_pnum, val);
 		}
 		else {
