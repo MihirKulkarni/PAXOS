@@ -6,7 +6,7 @@ import java.lang.Thread;
 public class Test {
 public static void test_0(){
   try{
-    TestNetwork n=new TestNetwork(3,3,3);
+    TestNetwork n=new TestNetwork(20,20,10);
     Paxos p=new Paxos(n);
     p.runPaxos();
 //    Thread.sleep(10000);
@@ -17,7 +17,7 @@ public static void test_0(){
 }
 public static void test_1(){
   try{
-    TestNetwork n=new TestNetwork(4,3,4);
+    TestNetwork n=new TestNetwork(20,20,10);
     Paxos p=new Paxos(n);
     p.runPaxos();
     Thread.sleep(1000); //sleep necessary, you cant block channel unless each paxos process have created channels, throws exception

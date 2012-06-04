@@ -70,7 +70,6 @@ public class TestNetwork extends Network {
     TestChannel c=new TestChannel();
     c.test_index=processID;
     channels[processID]=c; 
-    System.out.println("Setting value for test_index"+processID+""+c.test_index);
     c.test_network=this;
     return c;
   }

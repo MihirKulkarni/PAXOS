@@ -55,6 +55,7 @@ public class Paxos implements Runnable{
         int guaranteed_value=-1;
         int guaranteed_Pnum=-1;  
 	int guaranteed_flag=0;
+        int TIME_OUT=15000;
         Date start_time=new Date();
 	while(true){
   	  if(c.isDistinguished()){ 
@@ -64,26 +65,31 @@ public class Paxos implements Runnable{
 	    for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
  	      Message m_prepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,-1);
               c.sendMessage(a,m_prepare.createMessage());
-	      System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" with PNum:"+cur_Pnum);
+//	      System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" with PNum:"+cur_Pnum);
             }
 	    while(true){
               if(!c.isDistinguished())
                 break;
 	      String msg=c.receiveMessage(); // infintely query Message buffer for new message;
-//              if(timeout)
-// 		should resend prepare
               Date cur_time=new Date();
 	      long elapsed_time=cur_time.getTime()-start_time.getTime();
-              if(elapsed_time>15000){  
+              if(elapsed_time>TIME_OUT){  
+                while(c.receiveMessage()!=null){} //Clear all previous messages and start fresh prepare
                 System.out.println("P-"+myindex+"HIGH TIME to start new run, Elapsed Time: "+elapsed_time);
                 cur_Pnum=nextProposalNumber(myindex,cur_Pnum);
 	        for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
  	          Message m_prepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,-1);
                   c.sendMessage(a,m_prepare.createMessage());
-	          System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" with PNum:"+cur_Pnum);
+//	          System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" with PNum:"+cur_Pnum);
                 }
                 start_time=new Date();  
+		guaranteed_value=-1;
+		guaranteed_Pnum=-1;  
+		guaranteed_flag=0;
+                TIME_OUT*=2;
+
               } 
+
               if(msg!=null){
                 start_time=new Date(); 
 	        Message m=new Message(MSG_TYPE.PREPARE,-1,-1,-1,-1,-1); //create a dummy Message object
@@ -94,10 +100,9 @@ public class Paxos implements Runnable{
                     if(guaranteed_flag==1 && m.Pnum==guaranteed_Pnum){ //We already got a guarantee from majority so just accept what we already agreed
           	      Message m_accept=new Message(MSG_TYPE.ACCEPT,myindex,m.AID,m.Pnum,-1,guaranteed_value);   
                       c.sendMessage(m.AID,m_accept.createMessage());
-//                      System.out.println("DP P-"+myindex+" sending ACCEPT msg for past run to A-"+m.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+guaranteed_value);
+ //                     System.out.println("DP P-"+myindex+" sending ACCEPT msg for past run to A-"+m.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+guaranteed_value);
                     }
                     if(m.Pnum==cur_Pnum){   //Ignore Promise for past run, we will anyways get PROMISE for current run.
-  		      
 		   //if guarantee reached reply back accepted value and cur_Pnum. Set the flag when you start new run.
 			//if guarantee reached, f 
 				//if PROMISE has no value(-1) ==> send ACCEPT with value and cur_Pnum > PNum
@@ -164,7 +169,7 @@ public class Paxos implements Runnable{
 			    if(promise_queue[a-network.numProposers()]!=null){
               	              Message m_accept=new Message(MSG_TYPE.ACCEPT,myindex,a,m.Pnum,-1,guaranteed_value);   
                               c.sendMessage(a,m_accept.createMessage());
-                              System.out.println("P-"+myindex+"Sent ACCEPT message to A-"+m_accept.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+guaranteed_value);
+ //                             System.out.println("P-"+myindex+"Sent ACCEPT message to A-"+m_accept.AID+" with PNum: "+m.Pnum+""+cur_Pnum+" and value: "+guaranteed_value);
                             }
                           }
                         }
@@ -178,16 +183,18 @@ public class Paxos implements Runnable{
 	              cur_Pnum=nextProposalNumber(myindex,cur_Pnum>m.Pnum?cur_Pnum:m.Pnum); //Acceptor shoud send the highest promised Pnum so far. so that Proposer can generate a even higher Pnum.
    		      if(cur_Pnum==-1)
                         System.out.println("Reached MAX_PROPNUM, bail out by throwing exception");
+                      Thread.sleep(1000);
+                      while(c.receiveMessage()!=null){} //Clear all previous messages and start fresh prepare
  	              for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
  	                Message m_newprepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,-1);
                         c.sendMessage(a,m_newprepare.createMessage());
-//  	                System.out.println("NACK_Promise recvd so DP sending Prepare Message to A-"+m_newprepare.AID +" with PNum:"+cur_Pnum);
+// 	                System.out.println("NACK_Promise recvd so DP sending Prepare Message to A-"+m_newprepare.AID +" with PNum:"+cur_Pnum);
                         promise_queue[a-network.numProposers()]=null;
                       }  
                     }
                     break;
                   case ACCEPTED: //value has been accepted. Keep quiet.
-                    System.out.println("P-"+myindex+"Recvd ACCEPTED from A-"+m.AID+" for PNum:"+m.Pnum+""+cur_Pnum+" and value: "+m.Value);
+ //                   System.out.println("P-"+myindex+"Recvd ACCEPTED from A-"+m.AID+" for PNum:"+m.Pnum+""+cur_Pnum+" and value: "+m.Value);
 		    Acceptor_decisions[m.AID-network.numProposers()]=1;
                     int decision_made=0;
 		    for(int i=0;i<network.numAcceptors();i++){
@@ -216,6 +223,9 @@ public class Paxos implements Runnable{
 		      cur_Pnum=nextProposalNumber(myindex,cur_Pnum);
 		      if(cur_Pnum==-1)
                         System.out.println("Reached MAX_PROPNUM, bail out by throwing exception");
+                      Thread.sleep(1000);
+                      while(c.receiveMessage()!=null){} //Clear all previous messages and start fresh prepare
+
  	              for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
  	                Message m_prepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,-1);
                         c.sendMessage(a,m_prepare.createMessage());
@@ -254,6 +264,7 @@ public class Paxos implements Runnable{
 	  Message m2;
 	  if(msg_st != null) {
 	    m1.parseMessage(msg_st);
+//System.out.println(msg_st)
 	    // switch case to handle all msg_type
 	    switch (m1.msg_type) {
 	      case PREPARE:
