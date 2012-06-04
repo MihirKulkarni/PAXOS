@@ -9,8 +9,8 @@ public class TestChannel extends Channel {
   int test_index;
   int terminate=0;//set to 1 to terminate;
   int block_channel=0; //set to 1 to block messages
-  int DP_mode=0; //0->single DP, 1-> All DP, 2-> Cycle DP
-
+  int DP_mode=0; //0->single DP, 1-> All DP, 2-> Cycle DP, 3->make specific proposer as DP
+  int requested_DP=-1; // process ID for DP_mode=3
   /** Send the message message to process destination. */
 
   public void sendMessage(int destination, String message) {
@@ -65,6 +65,10 @@ public class TestChannel extends Channel {
 //        System.out.println("Cycling DP-"+test_index+"  time:"+(cur_time/10000));
         return true;
       } 
+    }
+    if(DP_mode==3){
+      if (test_index==requested_DP)
+        return true;
     }
  
     if (test_index>=test_network.test_numProposers)

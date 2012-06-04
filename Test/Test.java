@@ -46,7 +46,7 @@ public static void test_2(){
     Paxos p=new Paxos(n);
     p.runPaxos();
     Thread.sleep(1000);
-    n.change_DPmode(2);
+    n.change_DPmode(3,3);
     Thread.sleep(15000);
     n.terminate_run();
     System.out.println("\n\nTERMINATED PAXOS RUN-1");

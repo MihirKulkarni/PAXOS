@@ -75,9 +75,10 @@ public class TestNetwork extends Network {
       channels[i].terminate();
   }
   
-  public void change_DPmode(int mode){
-    for(int i=0;i<test_numProposers;i++)
+  public void change_DPmode(int mode,int PID){
+    for(int i=0;i<test_numProposers;i++){
       channels[i].DP_mode=mode;
+      channels[i].requested_DP=PID; 
   }
-
+  }
 }
