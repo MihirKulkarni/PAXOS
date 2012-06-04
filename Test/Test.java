@@ -45,7 +45,10 @@ public static void test_2(){
     TestNetwork n=new TestNetwork(5,2,3);
     Paxos p=new Paxos(n);
     p.runPaxos();
-    Thread.sleep(1000);
+    Thread.sleep(100);
+    n.block_channel(0,1); //block channel 0 immediately coz takes some time before process 3 kicks in as DP.
+    //Thread.sleep(1000);
+    
     n.change_DPmode(3,3);
     Thread.sleep(15000);
     n.terminate_run();
