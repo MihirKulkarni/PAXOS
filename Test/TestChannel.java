@@ -18,7 +18,7 @@ public class TestChannel extends Channel {
   public void sendMessage(int destination, String message) {
     throw_exception();
     synchronized(test_network.test_queues[destination]) {
-      test_network.test_queues[destination].add(message);
+      test_network.test_queues[destination].push(message);
     }
   }
   public void blockchannel(){
@@ -38,7 +38,7 @@ public class TestChannel extends Channel {
     synchronized(test_network.test_queues[test_index]) {
       if(lose_msg==1){
         while(!test_network.test_queues[test_index].isEmpty())
-          test_network.test_queues[test_index].remove();
+          test_network.test_queues[test_index].pop();
         System.out.println("Removed all msgs for P-"+test_index);
       }
 
@@ -47,7 +47,7 @@ public class TestChannel extends Channel {
       }
       else{    
         if (!test_network.test_queues[test_index].isEmpty())
-	  return test_network.test_queues[test_index].remove();
+	  return test_network.test_queues[test_index].pop();
         else
 	  return null;
       } 

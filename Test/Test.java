@@ -6,10 +6,11 @@ import java.lang.Thread;
 public class Test {
 public static void test_0(){
   try{
-    TestNetwork n=new TestNetwork(20,20,10);
+    TestNetwork n=new TestNetwork(3,3,3);
     Paxos p=new Paxos(n);
     p.runPaxos();
-    Thread.sleep(100000);
+    
+    Thread.sleep(10000);
     n.terminate_run();
     System.out.println("\n\nTERMINATED PAXOS RUN-1");
   }
@@ -102,7 +103,7 @@ public static void test_4() {
 
 public static void test_5() {
 	try {
-		TestNetwork n = new TestNetwork(50, 50, 50);
+		TestNetwork n = new TestNetwork(3,3,3);
 		Paxos p = new Paxos(n);
 		p.runPaxos();
 		Thread.sleep(500);
@@ -126,7 +127,6 @@ public static void test_6(){
     Thread.sleep(1000);
     n.lossy_channel(6,0);
     n.lossy_channel(7,0);
-
     Thread.sleep(100000);
     n.terminate_run();
     System.out.println("\n\nTERMINATED PAXOS RUN-1");
@@ -140,8 +140,8 @@ public static void test_6(){
 //        test_2();
 //        test_3();
 //				test_4();
-//				test_5();
-       test_6();
+				test_5();
+//       test_6();
        
     } 
 }
