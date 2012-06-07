@@ -12,16 +12,14 @@ public class TestChannel extends Channel {
   int DP_mode=0; //0->single DP, 1-> All DP, 2-> Cycle DP, 3->make specific proposer as DP
   int requested_DP=-1; // process ID for DP_mode=3
   int lose_msg=0; //0->normal operation 1->lose all message in queue
-  int reorder_flag=0; //0-> use linkedlist 1->use stack
+  int dup_msg = 0; //0->normal operation 1->wait and duplicate message 2->send one copy and add multiple copies
+
   /** Send the message message to process destination. */
 
   public void sendMessage(int destination, String message) {
     throw_exception();
     synchronized(test_network.test_queues[destination]) {
-      if(reorder_flag==0)
-        test_network.test_queues[test_index].add(message);
-      else
-        test_network.test_stacks[destination].push(message); 
+      test_network.test_queues[destination].push(message);
     }
   }
   public void blockchannel(){
@@ -39,13 +37,11 @@ public class TestChannel extends Channel {
   public String receiveMessage() {
     throw_exception();
     synchronized(test_network.test_queues[test_index]) {
+
+
       if(lose_msg==1){
-        while(!test_network.test_queues[test_index].isEmpty()){
-          if(reorder_flag==0)
-            test_network.test_queues[test_index].remove();
-          else
-            test_network.test_stacks[test_index].pop();
-        }  
+        while(!test_network.test_queues[test_index].isEmpty())
+          test_network.test_queues[test_index].pop();
         System.out.println("Removed all msgs for P-"+test_index);
       }
 
@@ -54,12 +50,9 @@ public class TestChannel extends Channel {
       }
       else{    
         if (!test_network.test_queues[test_index].isEmpty())
-          if(reorder_flag==0)
-            return test_network.test_queues[test_index].remove();
-          else
-            return test_network.test_stacks[test_index].pop();
+					return test_network.test_queues[test_index].pop();
         else
-	  return null;
+					return null;
       } 
     }
   }
@@ -134,3 +127,4 @@ public class TestChannel extends Channel {
 
 
 }
+

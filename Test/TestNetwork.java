@@ -9,8 +9,7 @@ public class TestNetwork extends Network {
   int test_numLearners;
   int test_decision=-1;
   TestChannel channels[]=new TestChannel[100];
-  Stack<String>[] test_stacks;
-  LinkedList<String>[] test_queues;
+  Stack<String>[] test_queues;
 //Stack<String>[] test_queues=new Stack<String>()[];
 
   /** Create a network with test_numProposers proposes, test_numAcceptors
@@ -20,12 +19,9 @@ public class TestNetwork extends Network {
   public TestNetwork(int numProposers, int numAcceptors, int numLearners) {
     super(numProposers,numAcceptors,numLearners);
     test_totalProcesses=numProposers+numAcceptors+numLearners;
-    test_queues=new LinkedList[test_totalProcesses];
-    test_stacks=new Stack[test_totalProcesses];
-
+    test_queues=new Stack[test_totalProcesses];
     for(int i=0;i<test_totalProcesses;i++) {
-      test_queues[i]=new LinkedList<String>();
-      test_stacks[i]=new Stack<String>();
+      test_queues[i]=new Stack<String>();
     }
     this.test_numProposers=numProposers;
     this.test_numAcceptors=numAcceptors;
@@ -89,7 +85,10 @@ public class TestNetwork extends Network {
   public void lossy_channel(int PID,int flag){
     channels[PID].lose_msg=flag;
   }
-  public void re_order(int PID, int flag){
-    channels[PID].reorder_flag=flag;
-  }
+
+	public void dup_msg(int PID, int flag) {
+		channels[PID].dup_msg = flag;
+	}
+
 }
+
