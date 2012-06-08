@@ -62,32 +62,38 @@ public class TestNetwork extends Network {
     channels[processID]=c; 
     c.test_network=this;
     return c;
-  }
   
-  public void block_channel(int processID,int action){ //action 0->release, 1->block
-      channels[processID].block_channel=action;   
-//    System.out.println("CHANNEL TO BLOCK"+);
+  }
+  public void block_channel(int PID,int action){ //action 0->release, 1->block
+    while(channels[PID]==null){} //Added to all testhelper function to inifinitely wait until the channel is initialised rather than providing explicit sleeps
+    channels[PID].block_channel=action;   
   }
 
   public void terminate_run(){
-    for(int i=0;i<test_totalProcesses;i++)
+    for(int i=0;i<test_totalProcesses;i++){
+      while(channels[i]==null){}
       channels[i].terminate=1;
+    }
   }
   
   public void change_DPmode(int mode,int PID){
     for(int i=0;i<test_numProposers;i++){
+      while(channels[i]==null){}
       channels[i].DP_mode=mode;
       channels[i].requested_DP=PID; 
     }
   }
 
   public void lossy_channel(int PID,int flag){
+    while(channels[PID]==null){}
     channels[PID].lose_msg=flag;
   }
   public void dup_msg(int PID, int flag) {
+    while(channels[PID]==null){}
     channels[PID].dup_msg = flag;
   }
   public void reorder_msg(int PID,int flag){
+    while(channels[PID]==null){}
     channels[PID].reorder_msg = flag;
   }
 }

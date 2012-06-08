@@ -2,14 +2,13 @@ package Test;
 import Paxos.*;
 import java.util.LinkedList;
 import java.util.Date;
-import java.util.EmptyStackException;
 
 public class TestChannel extends Channel {
   TestNetwork test_network;
-  int test_index;
+  int test_index=-1;
   int terminate=0;//set to 1 to terminate;
   int block_channel=0; //set to 1 to block messages
-  int DP_mode=0; //0->single DP, 1-> All DP, 2-> Cycle DP, 3->make specific proposer as DP
+  int DP_mode=-1; //0->single DP, 1-> All DP, 2-> Cycle DP, 3->make specific proposer as DP
   int requested_DP=-1; // process ID for DP_mode=3
   int lose_msg=0; //0->normal operation 1->lose all message in queue
   int dup_msg = 0; //0->normal operation 1->wait and duplicate message 2->send multiple copies
@@ -99,8 +98,9 @@ public class TestChannel extends Channel {
 
   /** Call this function to determine whether a proposer is distinguished. */
 
-  public boolean isDistinguished() {
+  public boolean isDistinguished(){
     throw_exception();
+    while(DP_mode==-1){}
     if(DP_mode==0){  
       if (test_index==0)
         return true;
@@ -112,7 +112,7 @@ public class TestChannel extends Channel {
     if(DP_mode==2){  
       Date d=new Date();
       long cur_time=d.getTime();
-      if ((cur_time/10000)%test_network.test_numProposers==test_index){
+      if ((cur_time/1000)%test_network.test_numProposers==test_index){
 //        System.out.println("Cycling DP-"+test_index+"  time:"+(cur_time/10000));
         return true;
       } 
@@ -153,7 +153,7 @@ public class TestChannel extends Channel {
     throw_exception();
     if (test_index>=test_network.test_numProposers)
       throw new Error("Non-proposers should not be asking for initial value");
-    return test_index*-1;
+    return test_index;
   }
   
   

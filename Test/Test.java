@@ -1,49 +1,70 @@
 package Test;
 import Paxos.*;
 import java.lang.Thread;
+import java.util.Date;
 
 
 public class Test {
 public static void test_0(){
   try{
-    TestNetwork n=new TestNetwork(5,4,2);
+    System.out.println("Test Case - 0 :");
+    TestNetwork n=new TestNetwork(3,3,3);
     Paxos p=new Paxos(n);
     p.runPaxos();
-    Thread.sleep(100);
-    n.reorder_msg(0,1);
-    n.change_DPmode(1, -1);
-    n.dup_msg(1,1);
     Thread.sleep(10000);
     n.terminate_run();
-    System.out.println("\n\nTERMINATED PAXOS RUN-1");
+    System.out.println("\n\nTERMINATED PAXOS RUN-0");
+  }
+  catch(Exception e){}
+}
+
+public static void test_1a(){
+  try{
+    System.out.println("\n\nTestCase-1A\n\n");
+    TestNetwork n=new TestNetwork(3,3,3); //0->single DP, 1-> All DP, 2-> Cycle DP, 3->make specific proposer as DP
+    Paxos p=new Paxos(n);
+    p.runPaxos();
+    n.change_DPmode(1,-1);
+    Thread.sleep(10000);
+    n.terminate_run();
+    System.out.println("\n\nTERMINATED PAXOS RUN-1A");
+  }
+  catch(Exception e){}
+}
+public static void test_1b(){
+  try{
+    System.out.println("\n\nTestCase-1B\n\n");
+    TestNetwork n=new TestNetwork(3,3,3); //0->single DP, 1-> All DP, 2-> Cycle DP, 3->make specific proposer as DP
+    Paxos p=new Paxos(n);
+    p.runPaxos();
+    n.change_DPmode(2,-1);
+    Thread.sleep(10000);
+    n.terminate_run();
+    System.out.println("\n\nTERMINATED PAXOS RUN-1B");
+  }
+  catch(Exception e){}
+}
+public static void test_1c(){
+  try{
+    System.out.println("\n\nTestCase-1C\n\n");
+    TestNetwork n=new TestNetwork(3,3,3); //0->single DP, 1-> All DP, 2-> Cycle DP, 3->make specific proposer as DP
+    Paxos p=new Paxos(n);
+    p.runPaxos();
+    n.change_DPmode(3,2);
+    Thread.sleep(10000);
+    if(n.test_decision!=2)    
+      System.out.println("Learnt a wrong value, Proposer-2 is active hence value should be 2 but Learnt value is "+n.test_decision);
+    n.terminate_run();
+    System.out.println("\n\nTERMINATED PAXOS RUN-1C");
   }
   catch(Exception e){}
 }
 public static void test_1(){
-  try{
-    System.out.println("\n\nTestCase-1\n\n");
-    Thread.sleep(1000);
-    TestNetwork n=new TestNetwork(20,20,10);
-    Paxos p=new Paxos(n);
-    p.runPaxos();
-    Thread.sleep(1000); //sleep necessary, you cant block channel unless each paxos process have created channels, throws exception
-    n.block_channel(8,1);
-    Thread.sleep(1000);
-    n.block_channel(9,1);
-    Thread.sleep(1000);
-    n.block_channel(10,1);
-    Thread.sleep(1000);
-    n.block_channel(8,0);
-    Thread.sleep(1000);
-    n.block_channel(9,0);
-    Thread.sleep(1000);
-    n.block_channel(10,0);
-    Thread.sleep(10000);
-    n.terminate_run();
-    System.out.println("\n\nTERMINATED PAXOS RUN-1");
-  }
-  catch(Exception e){}
+//  test_1a();
+  test_1b();
+//  test_1c();
 }
+
 public static void test_2(){
   try{
     TestNetwork n=new TestNetwork(5,2,3);
@@ -139,8 +160,8 @@ public static void test_6(){
 }
 
   public static void main(String[] inputs) {
-        test_0();  //basic test to make sure paxos works in normal conditions
-//      test_1();  //change DP modes
+//        test_0();  //basic test to make sure paxos works in normal conditions
+        test_1();  //change DP modes
 //      test_2();  //block channel and release channel (case to chk learners releasing channel succesively)
 //      test_3();  //reorder messages (have a mix of this in all cases)
 //	test_4();  //duplicate messages 

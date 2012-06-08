@@ -65,7 +65,7 @@ public class Paxos implements Runnable{
 	    for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
  	      Message m_prepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,null);
               c.sendMessage(a,m_prepare.createMessage());
-//	      System.out.println("DP sending Prepare Message to A-"+m_prepare.AID +" with PNum:"+cur_Pnum);
+	      System.out.println("DP-"+myindex+" sending Prepare Message to A-"+m_prepare.AID +" with PNum:"+cur_Pnum);
             }
 	    while(true){
               if(!c.isDistinguished())
@@ -298,7 +298,7 @@ public class Paxos implements Runnable{
   
  	          for(int i=network.numProposers()+network.numAcceptors(); i<totalprocess; i++) {
 		    c.sendMessage(i, m3.createMessage());
-                    System.out.println("Sent ACCEPTED to for PropNum="+m3.Pnum +" L-"+i);
+ //                   System.out.println("Sent ACCEPTED to for PropNum="+m3.Pnum +" L-"+i);
 		  }
 
 		  m2 = new Message(MSG_TYPE.ACCEPTED, m1.PID, m1.AID, max_pnum, val_pnum, val);
