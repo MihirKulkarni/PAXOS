@@ -12,49 +12,89 @@ public class TestChannel extends Channel {
   int DP_mode=0; //0->single DP, 1-> All DP, 2-> Cycle DP, 3->make specific proposer as DP
   int requested_DP=-1; // process ID for DP_mode=3
   int lose_msg=0; //0->normal operation 1->lose all message in queue
-	int dup_msg = 0; //0->normal operation 1->wait and duplicate message 2->send one copy and add multiple copies
+  int dup_msg = 0; //0->normal operation 1->wait and duplicate message 2->send multiple copies
+  int reorder_msg=0; //0->normal operation using FIFO queues 1-> reorder message using LIFO stack
 
   /** Send the message message to process destination. */
 
   public void sendMessage(int destination, String message) {
     throw_exception();
-    synchronized(test_network.test_queues[destination]) {
-      test_network.test_queues[destination].push(message);
+    if(reorder_msg==0){
+      synchronized(test_network.test_queues[destination]) {
+        if(dup_msg==0)
+          test_network.test_queues[destination].add(message);
+        if(dup_msg == 1){
+          try{
+            Thread.sleep(200);
+            for(int i = 3; i>0; i--)
+              test_network.test_queues[destination].add(message);
+          }catch (Exception e){} 
+        }   
+        if(dup_msg == 2){
+          for(int i = 3; i>0; i--)
+            test_network.test_queues[destination].add(message);
+        }   
+      }
+    }  
+    if(reorder_msg==1){
+      synchronized(test_network.test_stacks[destination]) {
+        if(dup_msg==0)
+          test_network.test_stacks[destination].push(message);
+        if(dup_msg == 1){
+          try{
+            Thread.sleep(200);
+            for(int i = 3; i>0; i--)
+              test_network.test_stacks[destination].push(message);
+          }catch (Exception e){} 
+        }   
+        if(dup_msg == 2){
+          for(int i = 3; i>0; i--)
+            test_network.test_stacks[destination].push(message);
+        }   
+      }
     }
-  }
-  public void blockchannel(){
-    System.out.println("CHANNEL for process-"+test_index+" BLOCKED");
-    block_channel=1;
-  }
-  public void releasechannel(){
-    System.out.println("CHANNEL for process-"+test_index+" RELEASED");
-    block_channel=0;
-  }
 
+  }
 
   /** Receive a message. */
 
   public String receiveMessage() {
     throw_exception();
-    synchronized(test_network.test_queues[test_index]) {
-
-
-      if(lose_msg==1){
-        while(!test_network.test_queues[test_index].isEmpty())
-          test_network.test_queues[test_index].pop();
-        System.out.println("Removed all msgs for P-"+test_index);
-      }
-
-      if(block_channel==1){
-        return null;
-      }
-      else{    
-        if (!test_network.test_queues[test_index].isEmpty())
-					return test_network.test_queues[test_index].pop();
-        else
-					return null;
-      } 
+    if(block_channel==1){
+      return null;
     }
+    if(reorder_msg==0){
+      synchronized(test_network.test_queues[test_index]) {
+        if(lose_msg==1){
+          while(!test_network.test_queues[test_index].isEmpty())
+            test_network.test_queues[test_index].remove();
+//        System.out.println("Removed all msgs for P-"+test_index);
+        }
+        else{    
+          if (!test_network.test_queues[test_index].isEmpty())
+  	    return test_network.test_queues[test_index].remove();
+          else
+	    return null;
+        }
+      }
+    }
+
+    if(reorder_msg==1){
+      synchronized(test_network.test_stacks[test_index]) {
+        if(lose_msg==1){
+          while(!test_network.test_stacks[test_index].isEmpty())
+            test_network.test_stacks[test_index].pop();
+//        System.out.println("Removed all msgs for P-"+test_index);
+        }
+        else{    
+          if (!test_network.test_stacks[test_index].isEmpty())
+  	    return test_network.test_stacks[test_index].pop();
+          else
+	    return null;
+        }
+      }
+    }
+    return null;
   }
 
   /** Call this function to determine whether a proposer is distinguished. */
@@ -113,16 +153,14 @@ public class TestChannel extends Channel {
     throw_exception();
     if (test_index>=test_network.test_numProposers)
       throw new Error("Non-proposers should not be asking for initial value");
-    return test_index;
+    return test_index*-1;
   }
   
-  public void terminate(){
-	terminate=1;
-  }
   
   public void throw_exception(){
+    StopError s=new StopError();  
     if(terminate==1)
-      throw new Error("Terminate thread");
+      s.throw_error();
   }
 
 	public void sleep() {

@@ -6,11 +6,14 @@ import java.lang.Thread;
 public class Test {
 public static void test_0(){
   try{
-    TestNetwork n=new TestNetwork(3,3,3);
+    TestNetwork n=new TestNetwork(5,4,2);
     Paxos p=new Paxos(n);
     p.runPaxos();
-    
-    Thread.sleep(100000);
+    Thread.sleep(100);
+    n.reorder_msg(0,1);
+    n.change_DPmode(1, -1);
+    n.dup_msg(1,1);
+    Thread.sleep(10000);
     n.terminate_run();
     System.out.println("\n\nTERMINATED PAXOS RUN-1");
   }
@@ -117,6 +120,7 @@ public static void test_5() {
 
 public static void test_6(){
   try{
+
     TestNetwork n=new TestNetwork(3,3,2);
     Paxos p=new Paxos(n);
     p.runPaxos();
@@ -135,13 +139,16 @@ public static void test_6(){
 }
 
   public static void main(String[] inputs) {
-//        test_0();
-        test_1();
-//        test_2();
-//        test_3();
-//				test_4();
-//				test_5();
-//       test_6();
+        test_0();  //basic test to make sure paxos works in normal conditions
+//      test_1();  //change DP modes
+//      test_2();  //block channel and release channel (case to chk learners releasing channel succesively)
+//      test_3();  //reorder messages (have a mix of this in all cases)
+//	test_4();  //duplicate messages 
+//      test_5();  //drop messages ..lossy channel
+//      test_6();  //play with initial value, try few cases sending MAX_INTs and MIN_INTs 
+//      test_7();  //placeholder for more crap
+
+//      test_final();  //stress test with tons of processes and let it end when it wishes. DONT TERMINATE!!!
        
     } 
 }

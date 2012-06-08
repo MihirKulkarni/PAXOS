@@ -5,8 +5,8 @@ public class Message{
   int AID;
   int Pnum;
   int Value_Pnum;
-  int Value;
-  public Message(MSG_TYPE mtype,int pid,int aid,int pnum,int val_pnum,int val){
+  String Value;
+  public Message(MSG_TYPE mtype,int pid,int aid,int pnum,int val_pnum,String val){
     msg_type=mtype;
     PID=pid;
     AID=aid;
@@ -22,7 +22,7 @@ public class Message{
     this.AID=Integer.parseInt(split_msg[2]);
     this.Pnum=Integer.parseInt(split_msg[3]);
     this.Value_Pnum=Integer.parseInt(split_msg[4]); 
-    this.Value=Integer.parseInt(split_msg[5]);
+    this.Value=split_msg[5];
   };
   public String createMessage(){
     return this.msg_type+"."+this.PID+"."+this.AID+"."+this.Pnum+"."+this.Value_Pnum+"."+this.Value;
