@@ -183,7 +183,7 @@ public class Paxos implements Runnable{
 	              cur_Pnum=nextProposalNumber(myindex,cur_Pnum>m.Pnum?cur_Pnum:m.Pnum); //Acceptor shoud send the highest promised Pnum so far. so that Proposer can generate a even higher Pnum.
    		      if(cur_Pnum==-1)
                         System.out.println("Reached MAX_PROPNUM, bail out by throwing exception");
-                      Thread.sleep(1000);
+                      c.sleep();
                       while(c.receiveMessage()!=null){} //Clear all previous messages and start fresh prepare
  	              for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
  	                Message m_newprepare=new Message(MSG_TYPE.PREPARE,myindex,a,cur_Pnum,-1,-1);
@@ -223,7 +223,7 @@ public class Paxos implements Runnable{
 		      cur_Pnum=nextProposalNumber(myindex,cur_Pnum);
 		      if(cur_Pnum==-1)
                         System.out.println("Reached MAX_PROPNUM, bail out by throwing exception");
-                      Thread.sleep(1000);
+                      c.sleep();
                       while(c.receiveMessage()!=null){} //Clear all previous messages and start fresh prepare
 
  	              for(int a=network.numProposers();a<(network.numProposers()+network.numAcceptors());a++){
@@ -237,13 +237,14 @@ public class Paxos implements Runnable{
                 
               }  
               else{ 
-	        Thread.sleep(1000); //Message queue empty so sleeping.
+	        c.sleep(); //Message queue empty so sleeping.
               }  
 	    }
 	  }
 	  else{
 //	    System.out.println("I am not Distinguished Proposer, so sitting idle P-"+myindex);
-	    Thread.sleep(1000);
+			c.sleep();
+//	    Thread.sleep(1000);
 	  }
 	}
       }
@@ -350,11 +351,11 @@ public class Paxos implements Runnable{
               }
             }
           }
-          Thread.sleep(1000);
+					c.sleep();
+//          Thread.sleep(1000);
         }
       }
     }
     catch(Exception e){e.printStackTrace();}
   }
 }
-

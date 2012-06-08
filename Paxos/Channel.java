@@ -61,4 +61,12 @@ public class Channel {
     return index;
   }
 
+	public void sleep() {
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			//ignore exception
+			System.out.println("Interrupted");
+			}
+	}
 }

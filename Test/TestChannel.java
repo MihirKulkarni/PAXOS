@@ -12,7 +12,7 @@ public class TestChannel extends Channel {
   int DP_mode=0; //0->single DP, 1-> All DP, 2-> Cycle DP, 3->make specific proposer as DP
   int requested_DP=-1; // process ID for DP_mode=3
   int lose_msg=0; //0->normal operation 1->lose all message in queue
-  int dup_msg = 0; //0->normal operation 1->wait and duplicate message 2->send one copy and add multiple copies
+	int dup_msg = 0; //0->normal operation 1->wait and duplicate message 2->send one copy and add multiple copies
 
   /** Send the message message to process destination. */
 
@@ -125,6 +125,12 @@ public class TestChannel extends Channel {
       throw new Error("Terminate thread");
   }
 
-
+	public void sleep() {
+		try {
+			Thread.sleep(0);
+		} catch (InterruptedException e) {
+				//ignore exception
+				System.out.println("Interrupted");
+			}
+	}
 }
-

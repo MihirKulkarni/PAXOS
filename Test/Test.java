@@ -10,7 +10,7 @@ public static void test_0(){
     Paxos p=new Paxos(n);
     p.runPaxos();
     
-    Thread.sleep(10000);
+    Thread.sleep(100000);
     n.terminate_run();
     System.out.println("\n\nTERMINATED PAXOS RUN-1");
   }
@@ -135,8 +135,8 @@ public static void test_6(){
 }
 
   public static void main(String[] inputs) {
-        test_0();
-//        test_1();
+//        test_0();
+        test_1();
 //        test_2();
 //        test_3();
 //				test_4();
@@ -145,4 +145,3 @@ public static void test_6(){
        
     } 
 }
-
