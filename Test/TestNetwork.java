@@ -76,13 +76,14 @@ public class TestNetwork extends Network {
     }
   }
   
-  public void change_DPmode(int mode,int PID){
+  public void change_DPmode(int PID,int mode){
     for(int i=0;i<test_numProposers;i++){
       while(channels[i]==null){}
       channels[i].DP_mode=mode;
       channels[i].requested_DP=PID; 
     }
   }
+
 
   public void lossy_channel(int PID,int flag){
     while(channels[PID]==null){}
@@ -95,6 +96,17 @@ public class TestNetwork extends Network {
   public void reorder_msg(int PID,int flag){
     while(channels[PID]==null){}
     channels[PID].reorder_msg = flag;
+  }
+  public void shuffle_msg(int PID){
+    while(channels[PID]==null){}
+    channels[PID].shuffle_msg();
+  }
+  public void change_init_logic(int logic){
+    for(int PID=0;PID<test_totalProcesses;PID++){
+     while(channels[PID]==null){}
+     channels[PID].init_logic=logic;
+    }
+
   }
 }
 

@@ -55,7 +55,7 @@ public class Paxos implements Runnable{
         String guaranteed_value=null;
         int guaranteed_Pnum=-1;  
 	int guaranteed_flag=0;
-        int TIME_OUT=15000;
+        int TIME_OUT=5000;
         Date start_time=new Date();
 	while(true){
   	  if(c.isDistinguished()){ 
