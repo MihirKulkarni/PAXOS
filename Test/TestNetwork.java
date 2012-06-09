@@ -106,7 +106,6 @@ public class TestNetwork extends Network {
      while(channels[PID]==null){}
      channels[PID].init_logic=logic;
     }
-
   }
 }
 

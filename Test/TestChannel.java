@@ -15,7 +15,7 @@ public class TestChannel extends Channel {
   int dup_msg = 0; //0->normal operation 1->wait and duplicate message 2->send multiple copies
   int reorder_msg=0; //0-> normal operation using FIFO queues 1-> reorder message using LIFO stack 
   int init_logic=0;  //0->test_index 1->(-)test_index 2->decremental test_index(-5) 3->multiplicative test_index(*5) 4->decremental from MAX_INT 5->incremental from MIN_INT
-  /** Send the message message to process destination. */
+  /* Send the message message to process destination. */
 
   public void sendMessage(int destination, String message) {
     throw_exception();
@@ -68,13 +68,12 @@ public class TestChannel extends Channel {
         if(lose_msg==1){
           while(!test_network.test_queues[test_index].isEmpty())
             test_network.test_queues[test_index].remove();
-//        System.out.println("Removed all msgs for P-"+test_index);
         }
         else{    
           if (!test_network.test_queues[test_index].isEmpty())
-  	    return test_network.test_queues[test_index].remove();
+						return test_network.test_queues[test_index].remove();
           else
-	    return null;
+						return null;
         }
       }
     }
@@ -84,13 +83,12 @@ public class TestChannel extends Channel {
         if(lose_msg==1){
           while(!test_network.test_stacks[test_index].isEmpty())
             test_network.test_stacks[test_index].pop();
-//        System.out.println("Removed all msgs for P-"+test_index);
         }
         else{    
           if (!test_network.test_stacks[test_index].isEmpty())
-  	    return test_network.test_stacks[test_index].pop();
+						return test_network.test_stacks[test_index].pop();
           else
-	    return null;
+						return null;
         }
       }
     }
@@ -114,8 +112,7 @@ public class TestChannel extends Channel {
     if(DP_mode==2){  
       Date d=new Date();
       long cur_time=d.getTime();
-      if ((cur_time/1000)%test_network.test_numProposers==test_index){
-//        System.out.println("Cycling DP-"+test_index+"  time:"+(cur_time/10000));
+      if ((cur_time/1000)%test_network.test_numProposers==test_index) {
         return true;
       } 
     }
@@ -157,12 +154,12 @@ public class TestChannel extends Channel {
 
     synchronized(test_network) {
       if (test_network.test_decision==-1)
-	test_network.test_decision=decision;
+				test_network.test_decision=decision;
       else {
-	if (test_network.test_decision!=decision)
-	  System.out.println("Disagreement between Learners. PAXOS BROKEN!!! :)");
-      }
-    }
+				if (test_network.test_decision!=decision)
+					System.out.println("Disagreement between Learners. PAXOS BROKEN!!! :)");
+			}
+		}
     throw_exception();
   }
   /** Call this function to get the initial value for a proposer. */
