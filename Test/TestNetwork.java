@@ -8,9 +8,11 @@ public class TestNetwork extends Network {
   int test_numAcceptors;
   int test_numLearners;
   int test_decision=-1;
+  int error_flag=0;// 1 -> Print Message Trace
   TestChannel channels[]=new TestChannel[100];
   LinkedList<String>[] test_queues;
   Stack<String>[] test_stacks;
+  LinkedList<String> MessageTrace;
 
   /** Create a network with test_numProposers proposes, test_numAcceptors
    * acceptors, and test_numLearners learners.*/
@@ -21,6 +23,7 @@ public class TestNetwork extends Network {
     test_totalProcesses=numProposers+numAcceptors+numLearners;
     test_queues=new LinkedList[test_totalProcesses];
     test_stacks=new Stack[test_totalProcesses];
+    MessageTrace=new LinkedList();
     for(int i=0;i<test_totalProcesses;i++) {
       test_queues[i]=new LinkedList<String>();
       test_stacks[i]=new Stack<String>();
@@ -72,7 +75,7 @@ public class TestNetwork extends Network {
   public void terminate_run(){
     for(int i=0;i<test_totalProcesses;i++){
       while(channels[i]==null){}
-      channels[i].terminate=1;
+        channels[i].terminate=1;
     }
   }
   
@@ -86,6 +89,10 @@ public class TestNetwork extends Network {
 
 
   public void lossy_channel(int PID,int flag){
+    if(flag==1) 
+      channels[PID].update_MessageTrace(" LOSSY CHANNEL ENABLED, Cannot receive any more messages");
+    if(flag==0) 
+      channels[PID].update_MessageTrace(" LOSSY CHANNEL DISABLED, Resume receiving messages");
     while(channels[PID]==null){}
     channels[PID].lose_msg=flag;
   }
@@ -98,6 +105,7 @@ public class TestNetwork extends Network {
     channels[PID].reorder_msg = flag;
   }
   public void shuffle_msg(int PID){
+    channels[PID].update_MessageTrace(" RANDOMLY SHUFFLE ALL MESSAGES in order to RE-ORDER them");
     while(channels[PID]==null){}
     channels[PID].shuffle_msg();
   }
@@ -105,6 +113,14 @@ public class TestNetwork extends Network {
     for(int PID=0;PID<test_totalProcesses;PID++){
      while(channels[PID]==null){}
      channels[PID].init_logic=logic;
+    }
+  }
+
+  public void printTrace(){
+    if(error_flag==1){
+      while(MessageTrace.size()!=0){
+        System.out.println(MessageTrace.remove());
+      } 
     }
   }
 }

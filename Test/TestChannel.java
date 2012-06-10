@@ -17,39 +17,52 @@ public class TestChannel extends Channel {
   int init_logic=0;  //0->test_index 1->(-)test_index 2->decremental test_index(-5) 3->multiplicative test_index(*5) 4->decremental from MAX_INT 5->incremental from MIN_INT
   /* Send the message message to process destination. */
 
+
   public void sendMessage(int destination, String message) {
     throw_exception();
     if(reorder_msg==0){
       synchronized(test_network.test_queues[destination]) {
-        if(dup_msg==0)
+        if(dup_msg==0){
+          update_MessageTrace(" Send -> "+message);
           test_network.test_queues[destination].add(message);
+        }
         if(dup_msg == 1){
           try{
             Thread.sleep(200);
-            for(int i = 3; i>0; i--)
+            for(int i = 3; i>0; i--){
+              update_MessageTrace(" Send -> "+message);
               test_network.test_queues[destination].add(message);
+            }
           }catch (Exception e){} 
         }   
         if(dup_msg == 2){
-          for(int i = 3; i>0; i--)
+          for(int i = 3; i>0; i--){
+            update_MessageTrace(" Send -> "+message);
             test_network.test_queues[destination].add(message);
+          } 
         }   
       }
     }  
     if(reorder_msg==1){
       synchronized(test_network.test_stacks[destination]) {
-        if(dup_msg==0)
+        if(dup_msg==0){
+          update_MessageTrace(" Send -> "+message);
           test_network.test_stacks[destination].push(message);
+        }
         if(dup_msg == 1){
           try{
             Thread.sleep(200);
-            for(int i = 3; i>0; i--)
+            for(int i = 3; i>0; i--){
+              update_MessageTrace(" Send -> "+message);
               test_network.test_stacks[destination].push(message);
+            }
           }catch (Exception e){} 
         }   
         if(dup_msg == 2){
-          for(int i = 3; i>0; i--)
+          for(int i = 3; i>0; i--){
+            update_MessageTrace(" Send -> "+message);
             test_network.test_stacks[destination].push(message);
+          }
         }   
       }
     }
@@ -70,10 +83,13 @@ public class TestChannel extends Channel {
             test_network.test_queues[test_index].remove();
         }
         else{    
-          if (!test_network.test_queues[test_index].isEmpty())
-						return test_network.test_queues[test_index].remove();
+          if (!test_network.test_queues[test_index].isEmpty()){
+            String msg=test_network.test_queues[test_index].remove();
+            update_MessageTrace(" Recv <- "+msg);
+            return msg;
+          }
           else
-						return null;
+            return null;
         }
       }
     }
@@ -85,10 +101,13 @@ public class TestChannel extends Channel {
             test_network.test_stacks[test_index].pop();
         }
         else{    
-          if (!test_network.test_stacks[test_index].isEmpty())
-						return test_network.test_stacks[test_index].pop();
+          if (!test_network.test_stacks[test_index].isEmpty()){
+            String msg=test_network.test_stacks[test_index].pop();
+            update_MessageTrace(" Recv <- "+msg);
+            return msg;
+          }
           else
-						return null;
+            return null;
         }
       }
     }
@@ -132,34 +151,47 @@ public class TestChannel extends Channel {
   public void decide(int decision) {
     if (test_index<(test_network.test_numProposers+test_network.test_numAcceptors))
       throw new Error("Non-learner should not be deciding a value");
-
     if(init_logic==0) 
-      if (decision>=test_network.test_numProposers && decision<0)
-        throw new Error("The decided value was not an initial value...");
+      if (decision>=test_network.test_numProposers && decision<0){
+        test_network.error_flag=1; 
+        throw new Error("The decided value was not an initial value...PAXOS BROKEN!!! :)");
+      }   
     if(init_logic==1) 
-      if (decision<=test_network.test_numProposers*(-1) && decision>0)
-        throw new Error("The decided value was not an initial value...");
+      if (decision<=test_network.test_numProposers*(-1) && decision>0){
+        test_network.error_flag=1; 
+        throw new Error("The decided value was not an initial value...PAXOS BROKEN!!! :)");
+      }   
     if(init_logic==2) 
-      if (decision>=test_network.test_numProposers-5 && decision<-5)
-        throw new Error("The decided value was not an initial value...");
+      if (decision>=test_network.test_numProposers-5 && decision<-5){
+        test_network.error_flag=1; 
+        throw new Error("The decided value was not an initial value...PAXOS BROKEN!!! :)");
+      }   
     if(init_logic==3) 
-      if ((decision%5)>=test_network.test_numProposers)
-        throw new Error("The decided value was not an initial value...");
+      if ((decision%5)>=test_network.test_numProposers){
+        test_network.error_flag=1; 
+        throw new Error("The decided value was not an initial value...PAXOS BROKEN!!! :)");
+      }   
     if(init_logic==4) 
-      if (decision<=Integer.MAX_VALUE-test_network.test_numProposers)
-        throw new Error("The decided value was not an initial value...");
+      if (decision<=Integer.MAX_VALUE-test_network.test_numProposers){
+        test_network.error_flag=1; 
+        throw new Error("The decided value was not an initial value...PAXOS BROKEN!!! :)");
+      }   
     if(init_logic==5) 
-      if (decision>=Integer.MIN_VALUE+test_network.test_numProposers)
-        throw new Error("The decided value was not an initial value...");
+      if (decision>=Integer.MIN_VALUE+test_network.test_numProposers){
+        test_network.error_flag=1; 
+        throw new Error("The decided value was not an initial value...PAXOS BROKEN!!! :)");
+      }   
 
     synchronized(test_network) {
       if (test_network.test_decision==-1)
-				test_network.test_decision=decision;
+        test_network.test_decision=decision;
       else {
-				if (test_network.test_decision!=decision)
-					System.out.println("Disagreement between Learners. PAXOS BROKEN!!! :)");
-			}
-		}
+        if (test_network.test_decision!=decision){
+          System.out.println("Disagreement between Learners. PAXOS BROKEN!!! :)");
+          test_network.error_flag=1; 
+        }
+      }
+    }
     throw_exception();
   }
   /** Call this function to get the initial value for a proposer. */
@@ -179,7 +211,6 @@ public class TestChannel extends Channel {
     if(init_logic==5)
       return Integer.MIN_VALUE+test_index;
     return test_index;
-
   }
   
   public void shuffle_msg(){
@@ -201,6 +232,37 @@ public class TestChannel extends Channel {
     } 
     catch (InterruptedException e) {
       System.out.println("Interrupted");
+    }
+  }
+
+  public String getCurTime(){
+    Date d = new Date ();
+    String date_str="";
+    if(d.getHours()<10)
+      date_str="0";
+    date_str+=d.getHours()+":";
+    if(d.getMinutes()<10)
+      date_str+="0";
+    date_str+=d.getMinutes()+":";
+    if(d.getSeconds()<10)
+      date_str+="0";
+    date_str+=d.getSeconds()+":";
+    int n = (int) d.getTime() % 1000;
+    date_str+=(n<0 ? n+1000 : n);
+    return date_str; 
+  }
+  public void update_MessageTrace(String msg){
+    if(reorder_msg==0 || reorder_msg==1){
+      synchronized(test_network.MessageTrace){
+        String whoamI=""; 
+        if(test_index<test_network.numProposers())
+          whoamI="Proposer - "+test_index;
+        if(test_index>=test_network.numProposers() && test_index<test_network.numAcceptors()+test_network.numProposers())
+          whoamI="Acceptor - "+test_index;
+        if(test_index>=test_network.numAcceptors()+test_network.numProposers() && test_index<test_network.test_totalProcesses)
+          whoamI="Learner  - "+test_index;
+        test_network.MessageTrace.add(getCurTime()+" "+whoamI+msg);
+      }
     }
   }
 }

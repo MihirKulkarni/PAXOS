@@ -2,19 +2,21 @@ package Test;
 import Paxos.*;
 import java.lang.Thread;
 import java.util.Date;
-
+import java.text.*;
 
 public class Test {
 public static void test_0(){
   try{
-    System.out.println("Test Case - 0 :");
+    System.out.println("Test Case - 0 :\n\n");
     TestNetwork n=new TestNetwork(3,3,3);
     Paxos p=new Paxos(n);
     p.runPaxos();
     n.change_DPmode(0,0);
     Thread.sleep(3000);
     n.terminate_run();
+    Thread.sleep(2000);
     System.out.println("\n\nTERMINATED PAXOS RUN-0");
+    n.printTrace();
   }
   catch(Exception e){}
 }
@@ -28,7 +30,9 @@ public static void test_1a(){
     n.change_DPmode(-1,1);
     Thread.sleep(3000);
     n.terminate_run();
+    Thread.sleep(2000);
     System.out.println("\n\nTERMINATED PAXOS RUN-1A");
+    n.printTrace();
   }
   catch(Exception e){}
 }
@@ -41,7 +45,9 @@ public static void test_1b(){
     n.change_DPmode(-1,2);
     Thread.sleep(3000);
     n.terminate_run();
+    Thread.sleep(2000);
     System.out.println("\n\nTERMINATED PAXOS RUN-1B");
+    n.printTrace();
   }
   catch(Exception e){}
 }
@@ -56,7 +62,9 @@ public static void test_1c(){
     if(n.test_decision!=2)    
       System.out.println("Learnt a wrong value, Proposer-2 is active hence value should be 2 but Learnt value is "+n.test_decision);
     n.terminate_run();
+    Thread.sleep(2000);
     System.out.println("\n\nTERMINATED PAXOS RUN-1C");
+    n.printTrace();
   }
   catch(Exception e){}
 }
@@ -89,7 +97,9 @@ public static void test_2(){
     n.block_channel(8,0);  //Lets release the next learner's channel
     Thread.sleep(5000);
     n.terminate_run();
+    Thread.sleep(2000);
     System.out.println("\n\nTERMINATED PAXOS RUN-2");
+    n.printTrace();
   }
   catch(Exception e){}
 }
@@ -117,7 +127,9 @@ public static void test_3a(){
     n.block_channel(8,0);  //Lets release the next learner's channel
     Thread.sleep(5000);
     n.terminate_run();
+    Thread.sleep(2000);
     System.out.println("\n\nTERMINATED PAXOS RUN-3A");
+    n.printTrace();
   }
   catch(Exception e){}
 }
@@ -147,7 +159,9 @@ public static void test_3b(){
     n.block_channel(8,0);  //Lets release the next learner's channel
     Thread.sleep(5000);
     n.terminate_run();
+    Thread.sleep(2000);
     System.out.println("\n\nTERMINATED PAXOS RUN-3B");
+    n.printTrace();
   }
   catch(Exception e){}
 }
@@ -158,47 +172,52 @@ public static void test_3() {
 
 
 public static void test_4a() {
-	/* Duplicate messages sent by proposer to acceptor */
-	try {
-		TestNetwork n = new TestNetwork(5, 5, 2);
-		Paxos p = new Paxos(n);
-		p.runPaxos();
-		Thread.sleep(1000);
-		n.change_DPmode(1, 1);		// All proposers are Distinguished
-		n.dup_msg(0, 2);					// Duplicate messages sent by proposer 0
-		n.dup_msg(1, 2);					// Duplicate messages sent by proposer 1
-		n.dup_msg(3, 2);					// Duplicate messages sent by proposer 3
-		Thread.sleep(5000);
-		n.terminate_run();
-		System.out.println("\n\nTERMINATED PAXOS RUN-4a");
-
-	} catch(Exception e) {}
+  /* Duplicate messages sent by proposer to acceptor */
+  try {
+    System.out.println("\n\nTest Case - 4A :\n\n");
+    TestNetwork n = new TestNetwork(5, 5, 2);
+    Paxos p = new Paxos(n);
+    p.runPaxos();
+    Thread.sleep(1000);
+    n.change_DPmode(1, 1);    // All proposers are Distinguished
+    n.dup_msg(0, 2);          // Duplicate messages sent by proposer 0
+    n.dup_msg(1, 2);          // Duplicate messages sent by proposer 1
+    n.dup_msg(3, 2);          // Duplicate messages sent by proposer 3
+    Thread.sleep(5000);
+    n.terminate_run();
+    Thread.sleep(2000);
+    System.out.println("\n\nTERMINATED PAXOS RUN-4A");
+    n.printTrace();
+  } catch(Exception e) {}
 }
 
 public static void test_4b() {
-	/* Duplicate messages sent by acceptor */
-	try {
-		TestNetwork n = new TestNetwork(5, 5, 2);
-		Paxos p = new Paxos(n);
-		p.runPaxos();
-		n.change_DPmode(1, 1);
-		n.dup_msg(5, 2);
-		n.dup_msg(7, 2);
-		n.dup_msg(9, 2);
-		Thread.sleep(5000);
-		n.terminate_run();
-		System.out.println("\n\nTERMINATED PAXOS RUN-4b");
-
-	} catch(Exception e) {}
+  /* Duplicate messages sent by acceptor */
+  try {
+    System.out.println("\n\nTest Case - 4B :\n\n");
+    TestNetwork n = new TestNetwork(5, 5, 2);
+    Paxos p = new Paxos(n);
+    p.runPaxos();
+    n.change_DPmode(1, 1);
+    n.dup_msg(5, 2);
+    n.dup_msg(7, 2);
+    n.dup_msg(9, 2);
+    Thread.sleep(5000);
+    n.terminate_run();
+    Thread.sleep(2000);
+    System.out.println("\n\nTERMINATED PAXOS RUN-4B");
+    n.printTrace();
+  } catch(Exception e) {}
 }
 
 public static void test_4() {
-	test_4a();
-	test_4b();
+  test_4a();
+  test_4b();
 }
 
 public static void test_5a() {
-	try {
+  try {
+    System.out.println("\n\nTest Case - 5A :\n\n");
     TestNetwork n=new TestNetwork(3,3,2);
     Paxos p=new Paxos(n);
     p.runPaxos();
@@ -213,41 +232,47 @@ public static void test_5a() {
     n.lossy_channel(7,0);
     Thread.sleep(5000);
     n.terminate_run();
-    System.out.println("\n\nTERMINATED PAXOS RUN-5a");
-	} catch(Exception e) {}
+    Thread.sleep(2000);
+    System.out.println("\n\nTERMINATED PAXOS RUN-5A");
+    n.printTrace();
+  } catch(Exception e) {}
 }
 
 public static void test_5b() {
-	try {
+  try {
+    System.out.println("\n\nTest Case - 5B :\n\n");
     TestNetwork n=new TestNetwork(3,3,2);
     Paxos p=new Paxos(n);
     p.runPaxos();
     Thread.sleep(500);
-    n.change_DPmode(0,1);		// All are distinguished proposers
-    n.lossy_channel(0,1);			// Proposer 0 lose all messages
-    n.lossy_channel(1,1);			// Proposer 1 lose all message
+    n.change_DPmode(0,1);    // All are distinguished proposers
+    n.lossy_channel(0,1);      // Proposer 0 lose all messages
+    n.lossy_channel(1,1);      // Proposer 1 lose all message
     n.dup_msg(2,2);
-    Thread.sleep(1000);				// Give time for proposer 2 to complete with duplicate messages
-    n.lossy_channel(6,1);			// Learner 1 lose all messages
-    n.lossy_channel(7,1);			// Learner 2 lose all messages
+    Thread.sleep(1000);        // Give time for proposer 2 to complete with duplicate messages
+    n.lossy_channel(6,1);      // Learner 1 lose all messages
+    n.lossy_channel(7,1);      // Learner 2 lose all messages
     Thread.sleep(1000);
-    n.lossy_channel(0,0);			// Proposer 0 starts getting messages
-    n.lossy_channel(1,0);			// Proposer 1 starts getting messages
-    n.lossy_channel(6,0);			// Learner 1 starts getting messages
+    n.lossy_channel(0,0);      // Proposer 0 starts getting messages
+    n.lossy_channel(1,0);      // Proposer 1 starts getting messages
+    n.lossy_channel(6,0);      // Learner 1 starts getting messages
     n.lossy_channel(7,0);     // Learner 2 starts getting messages
     Thread.sleep(5000);
     n.terminate_run();
-    System.out.println("\n\nTERMINATED PAXOS RUN-5b");
-	} catch(Exception e) {}
+    Thread.sleep(2000);
+    System.out.println("\n\nTERMINATED PAXOS RUN-5B");
+    n.printTrace();
+  } catch(Exception e) {}
 }
 
 public static void test_5() {
-	test_5a();
-	test_5b();
+  test_5a();
+  test_5b();
 }
 
 public static void test_6(){
   try{
+    System.out.println("\n\nTest Case - 6 :\n\n");
     for(int i=0;i<6;i++){
     TestNetwork n=new TestNetwork(5,5,3);
     Paxos p=new Paxos(n);
@@ -259,14 +284,16 @@ public static void test_6(){
     n.change_init_logic(i);
     Thread.sleep(5000);
     n.terminate_run();
+    Thread.sleep(2000);
     System.out.println("\n\nTERMINATED PAXOS RUN-6."+i);
+    n.printTrace();
     }
   }
   catch(Exception e){}
 }
 
 public static void test_final(){
-    System.out.println("Test Case - FINAL :");
+    System.out.println("\n\nTest Case - FINAL :");
     TestNetwork n=new TestNetwork(50,50,50);
     Paxos p=new Paxos(n);
     p.runPaxos();
@@ -274,20 +301,19 @@ public static void test_final(){
 
 }
   public static void main(String[] inputs) {
-/*
-Date d1=new Date();
+
+      Date d1=new Date();
       test_0();  //basic test to make sure paxos works in normal conditions
+      test_6();  //play with initial value, try few cases sending MAX_INTs and MIN_INTs 
       test_1();  //change DP modes
       test_2();  //block channel and release channel (case to chk learners releasing channel succesively)
       test_3();  //reorder messages (have a mix of this in all cases)
-	test_4();  //duplicate messages 
+      test_4();  //duplicate messages 
       test_5();  //drop messages ..lossy channel
-      test_6();  //play with initial value, try few cases sending MAX_INTs and MIN_INTs 
-//      test_7();  //placeholder for more crap
-Date d2=new Date();
-System.out.println(d2.getTime()-d1.getTime());
-*/
-      test_final();  //stress test with tons of processes and let it end when it wishes. DONT TERMINATE!!!
+      Date d2=new Date();
+      System.out.println(d2.getTime()-d1.getTime());
+
+//      test_final();  //stress test with tons of processes and let it end when it wishes. DONT TERMINATE!!!
        
   } 
 }
